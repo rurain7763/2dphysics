@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Physics/Constant.h"
 
 bool Application::IsRunning() {
     return running;
@@ -11,6 +12,8 @@ void Application::Setup() {
     running = Graphics::OpenWindow();
 
     particle = new Particle(50, 100, 1.0);
+
+    prevFrameTime = SDL_GetTicks();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,8 +38,17 @@ void Application::Input() {
 // Update function (called several times per second to update objects)
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Update() {
-    particle->velocity = Vec2(2.0, 0.0);
+    int timeToWait = (prevFrameTime + MILLISECS_PER_FRAME) - SDL_GetTicks();
+    if(timeToWait > 0) {
+        SDL_Delay(timeToWait);
+    }
+    float deltaTime = (SDL_GetTicks() - prevFrameTime) / 1000.f;
+    if(deltaTime > 0.016f) {
+        deltaTime = 0.016f;
+    }
+    prevFrameTime = SDL_GetTicks();
 
+    particle->velocity = Vec2(50.f * deltaTime, 30.f * deltaTime);
     particle->position += particle->velocity;
 }
 

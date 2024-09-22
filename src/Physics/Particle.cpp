@@ -2,8 +2,9 @@
 #include "iostream"
 
 Particle::Particle(float x, float y, float mass) 
-    : position(x, y), mass(mass)
 {
+    position = Vec2(x, y);
+    this->mass = mass;
     std::cout << "Particle constructor called!\n";
 }
 

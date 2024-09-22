@@ -8,6 +8,7 @@ class Application {
     private:
         bool running = false;
         Particle* particle;
+        int prevFrameTime;
 
     public:
         Application() = default;
