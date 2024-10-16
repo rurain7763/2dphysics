@@ -48,8 +48,28 @@ void Application::Update() {
     }
     prevFrameTime = SDL_GetTicks();
 
-    particle->velocity = Vec2(50.f * deltaTime, 30.f * deltaTime);
-    particle->position += particle->velocity;
+    particle->acceleration = Vec2(50.f, 9.8f * PIXELS_PER_METER);
+    particle->velocity += particle->acceleration * deltaTime;
+    particle->position += particle->velocity * deltaTime;
+
+    const int windowWidth = Graphics::Width();
+    const int windowHeight = Graphics::Height();
+
+    if(particle->position.x > windowWidth - PARTICLE_RADIUS) {
+        particle->position.x = windowWidth - PARTICLE_RADIUS;
+        particle->velocity.x *= -0.9;
+    } else if(particle->position.x < PARTICLE_RADIUS) {
+        particle->position.x = PARTICLE_RADIUS;
+        particle->velocity.x *= -0.9;
+    }
+
+    if(particle->position.y > windowHeight - PARTICLE_RADIUS) {
+        particle->position.y = windowHeight - PARTICLE_RADIUS;
+        particle->velocity.y *= -0.9;
+    } else if(particle->position.y < PARTICLE_RADIUS) {
+        particle->position.y = PARTICLE_RADIUS;
+        particle->velocity.y *= -0.9;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,7 +77,7 @@ void Application::Update() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
-    Graphics::DrawFillCircle(particle->position.x, particle->position.y, 4, 0xFFFFFFFF);
+    Graphics::DrawFillCircle(particle->position.x, particle->position.y, PARTICLE_RADIUS, 0xFFFFFFFF);
     Graphics::RenderFrame();
 }
 
