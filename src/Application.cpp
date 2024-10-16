@@ -11,7 +11,10 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    particle = new Particle(50, 100, 1.0);
+    for(int i = 0; i < 10; i++) {
+        Particle* particle = new Particle(50, i * 100, i + 1.0);
+        particles.push_back(particle);
+    }
 
     prevFrameTime = SDL_GetTicks();
 }
@@ -49,27 +52,38 @@ void Application::Update() {
     prevFrameTime = SDL_GetTicks();
 
     Vec2 wind = Vec2(0.2f * PIXELS_PER_METER, 0.f);
-    particle->AddForce(wind);
+    for(auto particle : particles) {
+        particle->AddForce(wind);
+    }
 
-    particle->Integrate(deltaTime);
+    for(auto particle : particles) {
+        Vec2 weight = Vec2(0, 9.8f * PIXELS_PER_METER);
+        particle->AddForce(weight);
+    }
 
     const int windowWidth = Graphics::Width();
     const int windowHeight = Graphics::Height();
 
-    if(particle->position.x > windowWidth - PARTICLE_RADIUS) {
-        particle->position.x = windowWidth - PARTICLE_RADIUS;
-        particle->velocity.x *= -0.9;
-    } else if(particle->position.x < PARTICLE_RADIUS) {
-        particle->position.x = PARTICLE_RADIUS;
-        particle->velocity.x *= -0.9;
+    for(auto particle : particles) {
+        particle->Integrate(deltaTime);
     }
 
-    if(particle->position.y > windowHeight - PARTICLE_RADIUS) {
-        particle->position.y = windowHeight - PARTICLE_RADIUS;
-        particle->velocity.y *= -0.9;
-    } else if(particle->position.y < PARTICLE_RADIUS) {
-        particle->position.y = PARTICLE_RADIUS;
-        particle->velocity.y *= -0.9;
+    for(auto particle : particles) {
+        if(particle->position.x > windowWidth - PARTICLE_RADIUS) {
+            particle->position.x = windowWidth - PARTICLE_RADIUS;
+            particle->velocity.x *= -0.9;
+        } else if(particle->position.x < PARTICLE_RADIUS) {
+            particle->position.x = PARTICLE_RADIUS;
+            particle->velocity.x *= -0.9;
+        }
+
+        if(particle->position.y > windowHeight - PARTICLE_RADIUS) {
+            particle->position.y = windowHeight - PARTICLE_RADIUS;
+            particle->velocity.y *= -0.9;
+        } else if(particle->position.y < PARTICLE_RADIUS) {
+            particle->position.y = PARTICLE_RADIUS;
+            particle->velocity.y *= -0.9;
+        }
     }
 }
 
@@ -78,7 +92,11 @@ void Application::Update() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
-    Graphics::DrawFillCircle(particle->position.x, particle->position.y, PARTICLE_RADIUS, 0xFFFFFFFF);
+
+    for(auto particle : particles) {
+        Graphics::DrawFillCircle(particle->position.x, particle->position.y, PARTICLE_RADIUS, 0xFFFFFFFF);
+    }
+
     Graphics::RenderFrame();
 }
 
@@ -86,7 +104,8 @@ void Application::Render() {
 // Destroy function to delete objects and close the window
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Destroy() {
-    delete particle;
-
+    for(auto particle : particles) {
+        delete particle;
+    }
     Graphics::CloseWindow();
 }
