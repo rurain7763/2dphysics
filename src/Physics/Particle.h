@@ -9,7 +9,10 @@ struct Particle {
     Vec2 position;
     Vec2 acceleration;
     Vec2 velocity;
+
     float mass;
+    float invMass;
+    
     Vec2 sumForces;
 
     Particle(float x, float y, float mass);

@@ -8,9 +8,12 @@
 
 class Application {
     private:
-        bool running = false;
-        std::vector<Particle*> particles;
-        int prevFrameTime;
+        bool _running = false;
+        int _prevFrameTime;
+
+        std::vector<Particle*> _particles;
+        Vec2 _pushForce = Vec2(0, 0);
+        SDL_Rect _liquid;
 
     public:
         Application() = default;

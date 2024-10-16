@@ -1,10 +1,14 @@
 #include "Particle.h"
 #include "iostream"
 
-Particle::Particle(float x, float y, float mass) 
-{
+Particle::Particle(float x, float y, float mass) {
     position = Vec2(x, y);
     this->mass = mass;
+    if(mass != 0) {
+        invMass = 1.0 / mass;
+    } else {
+        invMass = 0;
+    }
     std::cout << "Particle constructor called!\n";
 }
 
@@ -21,7 +25,7 @@ void Particle::ClearForces() {
 }
 
 void Particle::Integrate(float dt) {
-    acceleration = sumForces / mass;
+    acceleration = sumForces * invMass;
 
     // Euler integration
     velocity += acceleration * dt;
