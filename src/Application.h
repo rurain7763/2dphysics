@@ -13,7 +13,6 @@ class Application {
 
         std::vector<Particle*> _particles;
         Vec2 _pushForce = Vec2(0, 0);
-        SDL_Rect _liquid;
 
     public:
         Application() = default;

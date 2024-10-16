@@ -12,10 +12,9 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    _liquid.x = 0;
-    _liquid.y = Graphics::Height() / 2.0;
-    _liquid.w = Graphics::Width();
-    _liquid.h = Graphics::Height() / 2.0;
+    Particle* bigParticlee = new Particle(Graphics::Width() / 2, Graphics::Height() / 2, 500);
+    bigParticlee->radius = 50;
+    _particles.push_back(bigParticlee);
 
     _prevFrameTime = SDL_GetTicks();
 }
@@ -81,14 +80,20 @@ void Application::Update() {
     _prevFrameTime = SDL_GetTicks();
 
     for(auto particle : _particles) {
-        Vec2 weight = Vec2(0, particle->mass * 9.8f * PIXELS_PER_METER);
-        particle->AddForce(weight);
-
         particle->AddForce(_pushForce);
 
-        if(particle->position.y > _liquid.y) {
-            Vec2 drag = Force::GenerateDragForce(*particle, 0.1);
-            particle->AddForce(drag);
+        Vec2 friction = Force::GenerateFrictionForce(*particle, 20);
+        particle->AddForce(friction);
+    }
+
+    for(int i = 0; i < _particles.size(); i++) {
+        for(int j = i + 1; j < _particles.size(); j++) {
+            Particle& a = *_particles[i];
+            Particle& b = *_particles[j];
+
+            Vec2 attraction = Force::GenerateGravitationalForce(a, b, 100.0, 5, 100);
+            a.AddForce(attraction);
+            b.AddForce(-attraction);
         }
     }
 
@@ -99,19 +104,19 @@ void Application::Update() {
     const int windowWidth = Graphics::Width();
     const int windowHeight = Graphics::Height();
     for(auto particle : _particles) {
-        if(particle->position.x > windowWidth - PARTICLE_RADIUS) {
-            particle->position.x = windowWidth - PARTICLE_RADIUS;
+        if(particle->position.x > windowWidth - particle->radius) {
+            particle->position.x = windowWidth - particle->radius;
             particle->velocity.x *= -0.9;
-        } else if(particle->position.x < PARTICLE_RADIUS) {
-            particle->position.x = PARTICLE_RADIUS;
+        } else if(particle->position.x < particle->radius) {
+            particle->position.x = particle->radius;
             particle->velocity.x *= -0.9;
         }
 
-        if(particle->position.y > windowHeight - PARTICLE_RADIUS) {
-            particle->position.y = windowHeight - PARTICLE_RADIUS;
+        if(particle->position.y > windowHeight - particle->radius) {
+            particle->position.y = windowHeight - particle->radius;
             particle->velocity.y *= -0.9;
-        } else if(particle->position.y < PARTICLE_RADIUS) {
-            particle->position.y = PARTICLE_RADIUS;
+        } else if(particle->position.y < particle->radius) {
+            particle->position.y = particle->radius;
             particle->velocity.y *= -0.9;
         }
     }
@@ -123,10 +128,8 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
 
-    Graphics::DrawFillRect(_liquid.x + _liquid.w / 2, _liquid.y + _liquid.h / 2, _liquid.w, _liquid.h, 0xFF6e3713);
-
     for(auto particle : _particles) {
-        Graphics::DrawFillCircle(particle->position.x, particle->position.y, PARTICLE_RADIUS, 0xFFFFFFFF);
+        Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, 0xFFFFFFFF);
     }
 
     Graphics::RenderFrame();
