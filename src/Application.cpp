@@ -48,9 +48,10 @@ void Application::Update() {
     }
     prevFrameTime = SDL_GetTicks();
 
-    particle->acceleration = Vec2(50.f, 9.8f * PIXELS_PER_METER);
-    particle->velocity += particle->acceleration * deltaTime;
-    particle->position += particle->velocity * deltaTime;
+    Vec2 wind = Vec2(0.2f * PIXELS_PER_METER, 0.f);
+    particle->AddForce(wind);
+
+    particle->Integrate(deltaTime);
 
     const int windowWidth = Graphics::Width();
     const int windowHeight = Graphics::Height();
