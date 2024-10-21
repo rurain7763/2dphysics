@@ -14,6 +14,10 @@ class Application {
         std::vector<Particle*> _particles;
         Vec2 _pushForce = Vec2(0, 0);
 
+        Vec2 _anchor;
+        float _k = 100;
+        float _restLength = 400;
+
     public:
         Application() = default;
         ~Application() = default;
