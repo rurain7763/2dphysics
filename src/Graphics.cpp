@@ -33,6 +33,9 @@ bool Graphics::OpenWindow() {
         std::cerr << "Error creating SDL renderer" << std::endl;
         return false;
     }
+
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+
     return true;
 }
 

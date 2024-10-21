@@ -78,16 +78,19 @@ void Application::Update() {
     }
     _prevFrameTime = SDL_GetTicks();
 
-    for(auto particle : _bodies) {
-        Vec2 drag = Force::GenerateDragForce(*particle, 0.002);
-        particle->AddForce(drag);
+    for(auto body : _bodies) {
+        Vec2 drag = Force::GenerateDragForce(*body, 0.002);
+        body->AddForce(drag);
 
-        Vec2 weight(0.f, particle->mass * 9.8f * PIXELS_PER_METER);
-        particle->AddForce(weight);
+        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        body->AddForce(weight);
+
+        body->AddTorque(20);
     }
 
-    for(auto particle : _bodies) {
-        particle->Integrate(deltaTime);
+    for(auto body : _bodies) {
+        body->IntegrateLinear(deltaTime);
+        body->IntegrateAngular(deltaTime);
     }
 
     const int windowWidth = Graphics::Width();
@@ -121,16 +124,12 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF000030);
 
-    static float angle = 0.0f;
-
     for(auto body : _bodies) {
         if(body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, angle, 0xFFFFFFFF);
+            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, 0xFFFFFFFF);
         }
     }
-
-    angle += 0.01f;
 
     Graphics::RenderFrame();
 }

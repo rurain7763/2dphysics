@@ -5,11 +5,27 @@ Body::Body(const Shape& shape, float x, float y, float mass) {
     this->shape = shape.Clone();
     position = Vec2(x, y);
     this->mass = mass;
-    if(mass != 0) {
-        invMass = 1.0 / mass;
+    if(mass != 0.f) {
+        invMass = 1.0f / mass;
     } else {
-        invMass = 0;
+        invMass = 0.f;
     }
+    velocity = Vec2(0.f, 0.f);
+    acceleration = Vec2(0.f, 0.f);
+
+    rotation = 0.f;
+    angularVelocity = 0.f;
+    angularAcceleration = 0.f;
+    I = shape.GetMomentOfInertia() * mass;
+    if(I != 0.f) {
+        invI = 1.0f / I;
+    } else {
+        invI = 0.f;
+    }
+
+    sumForces = Vec2(0.f, 0.f);
+    sumTorque = 0.f;
+
     std::cout << "Particle constructor called!\n";
 }
 
@@ -17,11 +33,11 @@ Body::Body(const Body& other) {
     shape = other.shape->Clone();
     position = other.position;
     mass = other.mass;
-    if(mass != 0) {
-        invMass = 1.0 / mass;
-    } else {
-        invMass = 0;
-    }
+    velocity = other.velocity;
+    acceleration = other.acceleration;
+    rotation = other.rotation;
+    angularVelocity = other.angularVelocity;
+    angularAcceleration = other.angularAcceleration;
 }
 
 Body::~Body() {
@@ -33,11 +49,19 @@ void Body::AddForce(Vec2 force) {
     sumForces += force;
 }
 
-void Body::ClearForces() {
-    sumForces = Vec2(0, 0);
+void Body::AddTorque(float torque) {
+    sumTorque += torque;
 }
 
-void Body::Integrate(float dt) {
+void Body::ClearForces() {
+    sumForces = Vec2(0.f, 0.f);
+}
+
+void Body::ClearTorque() {
+    sumTorque = 0.f;
+}
+
+void Body::IntegrateLinear(float dt) {
     acceleration = sumForces * invMass;
 
     // Euler integration
@@ -47,18 +71,22 @@ void Body::Integrate(float dt) {
     ClearForces();
 }
 
+void Body::IntegrateAngular(float dt) {
+    angularAcceleration = sumTorque * invI;
+
+    angularVelocity += angularAcceleration * dt;
+    rotation += angularVelocity * dt;
+
+    ClearTorque();
+}
+
 Body& Body::operator=(const Body& other) {
     if(this != &other) {
         delete shape;
-        
+
         shape = other.shape->Clone();
         position = other.position;
         mass = other.mass;
-        if(mass != 0) {
-            invMass = 1.0 / mass;
-        } else {
-            invMass = 0;
-        }
     }
     return *this;
 }

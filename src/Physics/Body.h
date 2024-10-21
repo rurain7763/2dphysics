@@ -9,10 +9,17 @@ struct Body {
     Vec2 acceleration;
     Vec2 velocity;
 
-    float mass;
-    float invMass;
+    float rotation;
+    float angularVelocity;
+    float angularAcceleration;
 
     Vec2 sumForces;
+    float sumTorque;
+
+    float mass;
+    float invMass;
+    float I;
+    float invI;
 
     Shape* shape = nullptr;
 
@@ -21,9 +28,13 @@ struct Body {
     ~Body();
 
     void AddForce(Vec2 force);
-    void ClearForces();
+    void AddTorque(float torque);
 
-    void Integrate(float dt);
+    void ClearForces();
+    void ClearTorque();
+
+    void IntegrateLinear(float dt);
+    void IntegrateAngular(float dt);
 
     Body& operator=(const Body& other);
 };
