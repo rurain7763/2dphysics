@@ -15,8 +15,13 @@ class Application {
         Vec2 _pushForce = Vec2(0, 0);
 
         Vec2 _anchor;
-        float _k = 100;
-        float _restLength = 400;
+        std::vector<Particle*> _chain;
+        float _restLength = 30.f;
+        float _k = 200.f;
+
+        Particle* _softBody[4];
+        float _softBodyRestLength = 150.f;
+        float _softBodyK = 1000.f;
 
     public:
         Application() = default;

@@ -39,3 +39,12 @@ Vec2 Force::GenerateSpringForce(const Particle& particle, Vec2 anchor, float res
 
     return d.UnitVector() * springMag;
 }
+
+Vec2 Force::GenerateSpringForce(const Particle& a, const Particle& b, float restLength, float k) {
+    Vec2 d = a.position - b.position;
+
+    float delta = d.Magnitude() - restLength;
+    float springMag = -k * delta;
+
+    return d.UnitVector() * springMag;
+}
