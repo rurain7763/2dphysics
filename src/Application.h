@@ -2,7 +2,7 @@
 #define APPLICATION_H
 
 #include "./Graphics.h"
-#include "Physics/Particle.h"
+#include "Physics/Body.h"
 
 #include <vector>
 
@@ -11,17 +11,8 @@ class Application {
         bool _running = false;
         int _prevFrameTime;
 
-        std::vector<Particle*> _particles;
+        std::vector<Body*> _bodies;
         Vec2 _pushForce = Vec2(0, 0);
-
-        Vec2 _anchor;
-        std::vector<Particle*> _chain;
-        float _restLength = 30.f;
-        float _k = 200.f;
-
-        Particle* _softBody[4];
-        float _softBodyRestLength = 150.f;
-        float _softBodyK = 1000.f;
 
     public:
         Application() = default;
