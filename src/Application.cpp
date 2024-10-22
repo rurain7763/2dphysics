@@ -14,8 +14,8 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* body = new Body(CircleShape(50), Graphics::Width() / 2, 50, 1.0);
-    _bodies.push_back(body);
+    Body* box = new Body(BoxShape(200, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
+    _bodies.push_back(box);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -33,9 +33,7 @@ void Application::Input() {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     _running = false;
-                }
-
-                if (event.key.keysym.sym == SDLK_RIGHT) {
+                } else if (event.key.keysym.sym == SDLK_RIGHT) {
                     _pushForce.x = 50.f * PIXELS_PER_METER; 
                 } else if (event.key.keysym.sym == SDLK_LEFT) {
                     _pushForce.x = -50.f * PIXELS_PER_METER;
@@ -82,15 +80,19 @@ void Application::Update() {
         Vec2 drag = Force::GenerateDragForce(*body, 0.002);
         body->AddForce(drag);
 
-        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        body->AddForce(weight);
+        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        //body->AddForce(weight);
 
-        body->AddTorque(20);
+        body->AddTorque(200);
     }
 
     for(auto body : _bodies) {
         body->IntegrateLinear(deltaTime);
         body->IntegrateAngular(deltaTime);
+        if(body->shape->GetType() == POLYGON || body->shape->GetType() == BOX) {
+            PolygonShape* polygon = static_cast<PolygonShape*>(body->shape);
+            polygon->UpdateVertices(body->position, body->rotation);
+        }
     }
 
     const int windowWidth = Graphics::Width();
@@ -128,6 +130,9 @@ void Application::Render() {
         if(body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
             Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, 0xFFFFFFFF);
+        } else if(body->shape->GetType() == BOX) {
+            BoxShape* box = static_cast<BoxShape*>(body->shape);
+            Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, 0xFFFFFFFF);
         }
     }
 

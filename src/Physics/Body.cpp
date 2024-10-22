@@ -80,6 +80,15 @@ void Body::IntegrateAngular(float dt) {
     ClearTorque();
 }
 
+void Body::UpdateBody(float deltaTime) {
+    IntegrateLinear(deltaTime);
+    IntegrateAngular(deltaTime);
+    if(shape->GetType() == POLYGON || shape->GetType() == BOX) {
+        PolygonShape* polygon = static_cast<PolygonShape*>(shape);
+        polygon->UpdateVertices(position, rotation);
+    }
+}
+
 Body& Body::operator=(const Body& other) {
     if(this != &other) {
         delete shape;

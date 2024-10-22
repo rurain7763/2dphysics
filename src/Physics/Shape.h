@@ -28,9 +28,13 @@ struct CircleShape : public Shape {
 };
 
 struct PolygonShape : public Shape {
-    std::vector<Vec2> vertices; 
+    std::vector<Vec2> localVertices; 
+    std::vector<Vec2> worldVertices;
+    
     PolygonShape() = default;
-    PolygonShape(const std::vector<Vec2>& vertices) : vertices(vertices) {}
+    PolygonShape(const std::vector<Vec2>& vertices);
+
+    void UpdateVertices(Vec2 position, float rotation);
 
     virtual float GetMomentOfInertia() const override;
     virtual Shape* Clone() const override;
@@ -40,7 +44,7 @@ struct PolygonShape : public Shape {
 struct BoxShape : public PolygonShape {
     float width, height;
 
-    BoxShape(float width, float height) : width(width), height(height) {}
+    BoxShape(float width, float height);
 
     virtual float GetMomentOfInertia() const override;
     virtual Shape* Clone() const override;
