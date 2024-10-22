@@ -2,6 +2,7 @@
 #include "Physics/Constant.h"
 #include "Physics/Force.h"
 #include "Physics/CollisionDetection.h"
+#include "Physics/Contact.h"
 
 #include <iostream>
 
@@ -57,9 +58,11 @@ void Application::Input() {
                     _pushForce.y = 0;
                 } 
                 break;
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEMOTION:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
+                _bodies[1]->position.x = msX;
+                _bodies[1]->position.y = msY;
                 break;
         }
     }
@@ -83,11 +86,11 @@ void Application::Update() {
         //Vec2 drag = Force::GenerateDragForce(*body, 0.002);
         //body->AddForce(drag);
 
-        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        body->AddForce(weight);
+        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        //body->AddForce(weight);
 
-        Vec2 wind(20.f * PIXELS_PER_METER, 0.f);
-        body->AddForce(wind);
+        //Vec2 wind(20.f * PIXELS_PER_METER, 0.f);
+        //body->AddForce(wind);
 
         //body->AddTorque(200);
     }
@@ -102,8 +105,11 @@ void Application::Update() {
             Body* a = _bodies[i];
             Body* b = _bodies[j];
 
-            if(CollisionDetection::IsCollision(a, b)) {
+            Contact contact;
+            if(CollisionDetection::IsCollision(a, b, contact)) {
                 // TODO: resovle collision
+                _contacts.push_back(contact);
+
                 a->isColliding++;
                 b->isColliding++;
             }
@@ -156,6 +162,13 @@ void Application::Render() {
             Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
         }
     }
+
+    for(auto& contact : _contacts) {
+        Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFFFF00);
+        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFF00);
+        Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFFFF00);
+    }
+    _contacts.clear();
 
     Graphics::RenderFrame();
 }
