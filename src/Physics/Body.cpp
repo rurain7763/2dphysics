@@ -62,6 +62,11 @@ void Body::ClearTorque() {
 }
 
 void Body::IntegrateLinear(float dt) {
+    if(IsStatic()) {
+        ClearForces();
+        return;
+    }
+
     acceleration = sumForces * invMass;
 
     // Euler integration
@@ -72,6 +77,11 @@ void Body::IntegrateLinear(float dt) {
 }
 
 void Body::IntegrateAngular(float dt) {
+    if(IsStatic()) {
+        ClearTorque();
+        return;
+    }
+
     angularAcceleration = sumTorque * invI;
 
     angularVelocity += angularAcceleration * dt;
@@ -87,6 +97,11 @@ void Body::UpdateBody(float deltaTime) {
         PolygonShape* polygon = static_cast<PolygonShape*>(shape);
         polygon->UpdateVertices(position, rotation);
     }
+}
+
+bool Body::IsStatic() { 
+    const float epsilon = 0.005f; 
+    return fabs(invMass - 0.0) < epsilon; 
 }
 
 Body& Body::operator=(const Body& other) {

@@ -16,10 +16,8 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* a = new Body(CircleShape(100), 100, 100, 1.0);
-    Body* b = new Body(CircleShape(50), 500, 100, 1.0);
+    Body* a = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
     _bodies.push_back(a);
-    _bodies.push_back(b);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -58,11 +56,11 @@ void Application::Input() {
                     _pushForce.y = 0;
                 } 
                 break;
-            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
-                _bodies[1]->position.x = msX;
-                _bodies[1]->position.y = msY;
+                Body* b = new Body(CircleShape(50), msX, msY, 1.0);
+                _bodies.push_back(b);
                 break;
         }
     }
@@ -83,16 +81,11 @@ void Application::Update() {
     _prevFrameTime = SDL_GetTicks();
 
     for(auto body : _bodies) {
-        //Vec2 drag = Force::GenerateDragForce(*body, 0.002);
-        //body->AddForce(drag);
+        Vec2 drag = Force::GenerateDragForce(*body, 0.002);
+        body->AddForce(drag);
 
-        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        //body->AddForce(weight);
-
-        //Vec2 wind(20.f * PIXELS_PER_METER, 0.f);
-        //body->AddForce(wind);
-
-        //body->AddTorque(200);
+        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        body->AddForce(weight);
     }
 
     for(auto body : _bodies) {
@@ -107,9 +100,7 @@ void Application::Update() {
 
             Contact contact;
             if(CollisionDetection::IsCollision(a, b, contact)) {
-                // TODO: resovle collision
-                _contacts.push_back(contact);
-
+                contact.ResolvePenetration();
                 a->isColliding++;
                 b->isColliding++;
             }
@@ -162,13 +153,6 @@ void Application::Render() {
             Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
         }
     }
-
-    for(auto& contact : _contacts) {
-        Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFFFF00);
-        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFF00);
-        Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFFFF00);
-    }
-    _contacts.clear();
 
     Graphics::RenderFrame();
 }

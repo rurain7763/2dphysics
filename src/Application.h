@@ -14,9 +14,7 @@ class Application {
 
         std::vector<Body*> _bodies;
         Vec2 _pushForce = Vec2(0, 0);
-
-        std::vector<Contact> _contacts;
-
+        
     public:
         Application() = default;
         ~Application() = default;

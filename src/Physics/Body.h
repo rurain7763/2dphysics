@@ -40,6 +40,8 @@ struct Body {
 
     void UpdateBody(float deltaTime);
 
+    bool IsStatic();
+
     Body& operator=(const Body& other);
 };
 
