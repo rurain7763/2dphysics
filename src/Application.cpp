@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Physics/Constant.h"
 #include "Physics/Force.h"
+#include "Physics/CollisionDetection.h"
 
 #include <iostream>
 
@@ -14,8 +15,10 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* box = new Body(BoxShape(200, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
-    _bodies.push_back(box);
+    Body* a = new Body(CircleShape(100), 100, 100, 1.0);
+    Body* b = new Body(CircleShape(50), 500, 100, 1.0);
+    _bodies.push_back(a);
+    _bodies.push_back(b);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -77,21 +80,33 @@ void Application::Update() {
     _prevFrameTime = SDL_GetTicks();
 
     for(auto body : _bodies) {
-        Vec2 drag = Force::GenerateDragForce(*body, 0.002);
-        body->AddForce(drag);
+        //Vec2 drag = Force::GenerateDragForce(*body, 0.002);
+        //body->AddForce(drag);
 
-        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        //body->AddForce(weight);
+        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        body->AddForce(weight);
 
-        body->AddTorque(200);
+        Vec2 wind(20.f * PIXELS_PER_METER, 0.f);
+        body->AddForce(wind);
+
+        //body->AddTorque(200);
     }
 
     for(auto body : _bodies) {
-        body->IntegrateLinear(deltaTime);
-        body->IntegrateAngular(deltaTime);
-        if(body->shape->GetType() == POLYGON || body->shape->GetType() == BOX) {
-            PolygonShape* polygon = static_cast<PolygonShape*>(body->shape);
-            polygon->UpdateVertices(body->position, body->rotation);
+        body->isColliding = 0;
+        body->UpdateBody(deltaTime);
+    }
+
+    for(int i = 0; i < _bodies.size() - 1; i++) {
+        for(int j = i + 1; j < _bodies.size(); j++) {
+            Body* a = _bodies[i];
+            Body* b = _bodies[j];
+
+            if(CollisionDetection::IsCollision(a, b)) {
+                // TODO: resovle collision
+                a->isColliding++;
+                b->isColliding++;
+            }
         }
     }
 
@@ -127,12 +142,18 @@ void Application::Render() {
     Graphics::ClearScreen(0xFF000030);
 
     for(auto body : _bodies) {
+        uint32_t color;
+        if(body->isColliding) {
+            color = 0xFF0000FF;
+        } else {
+            color = 0xFFFFFFFF;
+        }
         if(body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, 0xFFFFFFFF);
+            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
         } else if(body->shape->GetType() == BOX) {
             BoxShape* box = static_cast<BoxShape*>(body->shape);
-            Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, 0xFFFFFFFF);
+            Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
         }
     }
 
