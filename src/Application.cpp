@@ -59,7 +59,8 @@ void Application::Input() {
             case SDL_MOUSEBUTTONDOWN:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
-                Body* b = new Body(CircleShape(50), msX, msY, 1.0);
+                Body* b = new Body(CircleShape(40), msX, msY, 1.0);
+                b->restitution = 0.2;
                 _bodies.push_back(b);
                 break;
         }
@@ -100,7 +101,8 @@ void Application::Update() {
 
             Contact contact;
             if(CollisionDetection::IsCollision(a, b, contact)) {
-                contact.ResolvePenetration();
+                contact.ResolveCollision();
+
                 a->isColliding++;
                 b->isColliding++;
             }
@@ -147,7 +149,8 @@ void Application::Render() {
         }
         if(body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
+            //Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
+            Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
         } else if(body->shape->GetType() == BOX) {
             BoxShape* box = static_cast<BoxShape*>(body->shape);
             Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);

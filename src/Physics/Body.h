@@ -23,13 +23,17 @@ struct Body {
     float I;
     float invI;
 
+    // 0 ~ 1
+    // 충돌 처리 시 impulse 계산에 필요
+    float restitution;
+
     Shape* shape = nullptr;
 
     Body(const Shape& shape, float x, float y, float mass);
     Body(const Body& other);
     ~Body();
 
-    void AddForce(Vec2 force);
+    void AddForce(const Vec2& force);
     void AddTorque(float torque);
 
     void ClearForces();
@@ -37,6 +41,8 @@ struct Body {
 
     void IntegrateLinear(float dt);
     void IntegrateAngular(float dt);
+
+    void ApplyImpulse(const Vec2& impulse);
 
     void UpdateBody(float deltaTime);
 
