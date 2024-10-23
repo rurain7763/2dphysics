@@ -20,6 +20,10 @@ void PolygonShape::UpdateVertices(Vec2 position, float rotation) {
     }
 }
 
+Vec2 PolygonShape::EdgeAt(int idx) const {
+    return worldVertices[(idx + 1) % worldVertices.size()] - worldVertices[idx];
+}
+
 float PolygonShape::GetMomentOfInertia() const {
     return 0.f;
 }

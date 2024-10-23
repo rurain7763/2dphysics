@@ -16,8 +16,10 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* a = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    Body* a = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
+    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
     _bodies.push_back(a);
+    _bodies.push_back(b);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -56,12 +58,10 @@ void Application::Input() {
                     _pushForce.y = 0;
                 } 
                 break;
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEMOTION:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
-                Body* b = new Body(CircleShape(40), msX, msY, 1.0);
-                b->restitution = 0.2;
-                _bodies.push_back(b);
+                _bodies[1]->position = Vec2(msX, msY);
                 break;
         }
     }
@@ -85,8 +85,10 @@ void Application::Update() {
         Vec2 drag = Force::GenerateDragForce(*body, 0.002);
         body->AddForce(drag);
 
-        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        body->AddForce(weight);
+        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        //body->AddForce(weight);
+
+        body->AddTorque(200.f);
     }
 
     for(auto body : _bodies) {
