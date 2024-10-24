@@ -25,6 +25,8 @@ Body::Body(const Shape& shape, float x, float y, float mass) {
 
     restitution = 1.0;
 
+    friction = 0.7f;
+
     sumForces = Vec2(0.f, 0.f);
     sumTorque = 0.f;
 

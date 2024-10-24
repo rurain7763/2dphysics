@@ -27,6 +27,10 @@ struct Body {
     // 충돌 처리 시 impulse 계산에 필요
     float restitution;
 
+    // 0 ~ 1
+    // 표면 마찰력 계산에 필요
+    float friction;
+
     Shape* shape = nullptr;
 
     Body(const Shape& shape, float x, float y, float mass);

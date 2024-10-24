@@ -16,10 +16,12 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* a = new Body(BoxShape(1500, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
-    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    b->rotation = 0.5f;
-    _bodies.push_back(a);
+    //Body* a = new Body(BoxShape(1500, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
+    //Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    //b->rotation = 0.5f;
+    Body* b = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    b->restitution = 0.2f;
+    //_bodies.push_back(a);
     _bodies.push_back(b);
     
     _prevFrameTime = SDL_GetTicks();
@@ -62,7 +64,8 @@ void Application::Input() {
             case SDL_MOUSEBUTTONDOWN:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
-                Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
+                //Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
+                Body* box = new Body(CircleShape(40), msX, msY, 1.0);
                 _bodies.push_back(box);
                 break;
         }
@@ -152,8 +155,8 @@ void Application::Render() {
         }
         if(body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            //Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
-            Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
+            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
+            //Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
         } else if(body->shape->GetType() == BOX) {
             BoxShape* box = static_cast<BoxShape*>(body->shape);
             Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
