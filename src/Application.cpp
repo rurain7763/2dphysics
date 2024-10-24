@@ -16,8 +16,9 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* a = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
-    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 1.0);
+    Body* a = new Body(BoxShape(1500, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
+    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    b->rotation = 0.5f;
     _bodies.push_back(a);
     _bodies.push_back(b);
     
@@ -58,10 +59,11 @@ void Application::Input() {
                     _pushForce.y = 0;
                 } 
                 break;
-            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
                 int msX, msY;
                 SDL_GetMouseState(&msX, &msY);
-                _bodies[1]->position = Vec2(msX, msY);
+                Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
+                _bodies.push_back(box);
                 break;
         }
     }
@@ -85,10 +87,8 @@ void Application::Update() {
         Vec2 drag = Force::GenerateDragForce(*body, 0.002);
         body->AddForce(drag);
 
-        //Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        //body->AddForce(weight);
-
-        body->AddTorque(200.f);
+        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
+        body->AddForce(weight);
     }
 
     for(auto body : _bodies) {
@@ -107,6 +107,7 @@ void Application::Update() {
 
                 a->isColliding++;
                 b->isColliding++;
+                _contacts.push_back(contact);
             }
         }
     }
@@ -158,6 +159,13 @@ void Application::Render() {
             Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
         }
     }
+
+    for(auto& contact : _contacts) {
+        Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFFFF00);
+        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFF00);
+        Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFFFF00);
+    }
+    _contacts.clear();
 
     Graphics::RenderFrame();
 }

@@ -41,35 +41,40 @@ bool CollisionDetection::IsCollidingCircleCircle(Body* a, Body* b, Contact& cont
     return true;
 }
 
-float FindMinimumSeperation(const PolygonShape& a, const PolygonShape& b) {
-    float seperation = std::numeric_limits<float>::lowest();
-
-    for(int i = 0; i < a.worldVertices.size(); i++) {
-        const Vec2& aVert = a.worldVertices[i];
-        Vec2 aNormal = a.EdgeAt(i).Normal();
-
-        float minSeperation = 0;
-        for(auto& bVert : b.worldVertices) {
-            minSeperation = std::min(minSeperation, aNormal.Dot(bVert - aVert));
-        }
-
-        seperation = std::max(seperation, minSeperation);
-    }
-
-    return seperation;
-}
-
 bool CollisionDetection::IsCollidingPolygonPoloygon(Body* a, Body* b, Contact& contact) {
     // SAT algorithm
     const PolygonShape* aPoly = static_cast<PolygonShape*>(a->shape);
     const PolygonShape* bPoly = static_cast<PolygonShape*>(b->shape);
 
-    // collision check
-    if(FindMinimumSeperation(*aPoly, *bPoly) >= 0 || FindMinimumSeperation(*bPoly, *aPoly) >= 0) {
+    Vec2 aAxis, bAxis;
+    Vec2 aVertex, bVertex;
+
+    float abSeperation = aPoly->FindMinimumSeperation(bPoly, aAxis, aVertex);
+
+    if(abSeperation >= 0) {
         return false;
     }
 
-    // TODO: set contact
+    float baSeperation = bPoly->FindMinimumSeperation(aPoly, bAxis, bVertex);
+
+    if(baSeperation >= 0) {
+        return false;
+    }
+
+    contact.a = a;
+    contact.b = b;
+
+    if(abSeperation > baSeperation) {
+        contact.depth = -abSeperation;
+        contact.normal = aAxis.Normal();
+        contact.start = aVertex;
+        contact.end = aVertex + contact.normal * contact.depth;
+    } else {
+        contact.depth = -baSeperation;
+        contact.normal = -bAxis.Normal();
+        contact.start = bVertex - contact.normal * contact.depth;
+        contact.end = bVertex;
+    }
 
     return true;
 }

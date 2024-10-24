@@ -35,7 +35,10 @@ struct PolygonShape : public Shape {
     PolygonShape(const std::vector<Vec2>& vertices);
 
     void UpdateVertices(Vec2 position, float rotation);
+
     Vec2 EdgeAt(int idx) const;
+
+    float FindMinimumSeperation(const PolygonShape* other, Vec2& axis, Vec2& vertex) const;
 
     virtual float GetMomentOfInertia() const override;
     virtual Shape* Clone() const override;

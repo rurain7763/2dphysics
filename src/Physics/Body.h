@@ -43,6 +43,7 @@ struct Body {
     void IntegrateAngular(float dt);
 
     void ApplyImpulse(const Vec2& impulse);
+    void ApplyImpulse(const Vec2& impulse, const Vec2& contactVector);
 
     void UpdateBody(float deltaTime);
 

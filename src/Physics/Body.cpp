@@ -96,8 +96,15 @@ void Body::ApplyImpulse(const Vec2& impulse) {
     if(IsStatic()) {
         return;
     }
-
     velocity += impulse * invMass;
+}
+
+void Body::ApplyImpulse(const Vec2& impulse, const Vec2& contactVector) {
+    if(IsStatic()) {
+        return;
+    }
+    velocity += impulse * invMass;
+    angularVelocity += contactVector.Cross(impulse) * invI;
 }
 
 void Body::UpdateBody(float deltaTime) {
