@@ -16,13 +16,17 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    //Body* a = new Body(BoxShape(1500, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
-    //Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    //b->rotation = 0.5f;
-    Body* b = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    b->restitution = 0.2f;
-    //_bodies.push_back(a);
+    Body* a = new Body(BoxShape(2000, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
+    a->restitution = 0.1f;
+    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    b->restitution = 0.1f;
+    b->friction = 0.1f;
+    b->rotation = 0.5f;
+    _bodies.push_back(a);
     _bodies.push_back(b);
+
+    //Body* circle = new Body(CircleShape(50), 0, 0, 1.0);
+    //_bodies.push_back(circle);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -62,11 +66,21 @@ void Application::Input() {
                 } 
                 break;
             case SDL_MOUSEBUTTONDOWN:
-                int msX, msY;
-                SDL_GetMouseState(&msX, &msY);
-                //Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
-                Body* box = new Body(CircleShape(40), msX, msY, 1.0);
-                _bodies.push_back(box);
+                {
+                    int msX, msY;
+                    SDL_GetMouseState(&msX, &msY);
+                    //Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
+                    //_bodies.push_back(box);
+                    Body* cicle = new Body(CircleShape(25), msX, msY, 1.0);
+                    _bodies.push_back(cicle);    
+                }
+                break;
+            case SDL_MOUSEMOTION:
+                {
+                    int msX2, msY2;
+                    SDL_GetMouseState(&msX2, &msY2);
+                    //_bodies[1]->position = Vec2(msX2, msY2);    
+                }
                 break;
         }
     }
@@ -86,6 +100,7 @@ void Application::Update() {
     }
     _prevFrameTime = SDL_GetTicks();
 
+    
     for(auto body : _bodies) {
         Vec2 drag = Force::GenerateDragForce(*body, 0.002);
         body->AddForce(drag);
@@ -111,30 +126,6 @@ void Application::Update() {
                 a->isColliding++;
                 b->isColliding++;
                 _contacts.push_back(contact);
-            }
-        }
-    }
-
-    const int windowWidth = Graphics::Width();
-    const int windowHeight = Graphics::Height();
-    for(auto body : _bodies) {
-        if(body->shape->GetType() == CIRCLE) {
-            CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            
-            if(body->position.x > windowWidth - circle->radius) {
-                body->position.x = windowWidth - circle->radius;
-                body->velocity.x *= -0.9;
-            } else if(body->position.x < circle->radius) {
-                body->position.x = circle->radius;
-                body->velocity.x *= -0.9;
-            }
-
-            if(body->position.y > windowHeight - circle->radius) {
-                body->position.y = windowHeight - circle->radius;
-                body->velocity.y *= -0.9;
-            } else if(body->position.y < circle->radius) {
-                body->position.y = circle->radius;
-                body->velocity.y *= -0.9;
             }
         }
     }
