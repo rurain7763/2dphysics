@@ -16,17 +16,20 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
-    Body* a = new Body(BoxShape(2000, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
-    a->restitution = 0.1f;
+    Body* floor = new Body(BoxShape(2000, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
+    floor->restitution = 0.1f;
+    Body* leftWall = new Body(BoxShape(100, 2000), 50, Graphics::Height() / 2, 0.0);
+    leftWall->restitution = 0.1f;
+    Body* rightWall = new Body(BoxShape(100, 2000), Graphics::Width() - 50, Graphics::Height() / 2, 0.0);
+    rightWall->restitution = 0.1f;
     Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    b->restitution = 0.1f;
+    b->restitution = 0.5f;
     b->friction = 0.1f;
     b->rotation = 0.5f;
-    _bodies.push_back(a);
+    _bodies.push_back(floor);
+    _bodies.push_back(leftWall);
+    _bodies.push_back(rightWall);
     _bodies.push_back(b);
-
-    //Body* circle = new Body(CircleShape(50), 0, 0, 1.0);
-    //_bodies.push_back(circle);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -44,42 +47,47 @@ void Application::Input() {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     _running = false;
-                } else if (event.key.keysym.sym == SDLK_RIGHT) {
-                    _pushForce.x = 50.f * PIXELS_PER_METER; 
-                } else if (event.key.keysym.sym == SDLK_LEFT) {
-                    _pushForce.x = -50.f * PIXELS_PER_METER;
-                } else if (event.key.keysym.sym == SDLK_UP) {
-                    _pushForce.y = -50.f * PIXELS_PER_METER;
-                } else if (event.key.keysym.sym == SDLK_DOWN) {
-                    _pushForce.y = 50.f * PIXELS_PER_METER;
-                } 
-                break;
-            case SDL_KEYUP:
-                if (event.key.keysym.sym == SDLK_RIGHT) {
-                    _pushForce.x = 0; 
-                } else if (event.key.keysym.sym == SDLK_LEFT) {
-                    _pushForce.x = 0;
-                } else if (event.key.keysym.sym == SDLK_UP) {
-                    _pushForce.y = 0;
-                } else if (event.key.keysym.sym == SDLK_DOWN) {
-                    _pushForce.y = 0;
-                } 
+                }
+                if (event.key.keysym.sym == SDLK_d) {
+                    _isDebug = !_isDebug;
+                }
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 {
+                    static int shapeFlag = 0;
                     int msX, msY;
                     SDL_GetMouseState(&msX, &msY);
-                    //Body* box = new Body(BoxShape(50, 50), msX, msY, 1.0);
-                    //_bodies.push_back(box);
-                    Body* cicle = new Body(CircleShape(25), msX, msY, 1.0);
-                    _bodies.push_back(cicle);    
+
+                    Body* body;
+                    if(shapeFlag == 0) {
+                        body = new Body(CircleShape(25), msX, msY, 1.0);
+                    } else {
+                        int edgeCount = 3 + rand() % 7;
+                        float deg = 360.f / edgeCount;
+                        float radius = 50;
+
+                        std::vector<Vec2> vertices;
+
+                        float currentDeg = 0;
+                        for(int i = 0; i < edgeCount; i++) {
+                            currentDeg += deg;
+                            float x = cos(currentDeg * M_PI / 180.f) * radius;
+                            float y = sin(currentDeg * M_PI / 180.f) * radius;
+                            vertices.push_back(Vec2(x, y));
+                        }
+
+                        body = new Body(PolygonShape(vertices), msX, msY, 1.0);
+                        body->restitution = 0.5f;
+                    }
+
+                    shapeFlag = (shapeFlag + 1) % 2;
+                    _bodies.push_back(body);    
                 }
                 break;
             case SDL_MOUSEMOTION:
                 {
                     int msX2, msY2;
                     SDL_GetMouseState(&msX2, &msY2);
-                    //_bodies[1]->position = Vec2(msX2, msY2);    
                 }
                 break;
         }
@@ -125,7 +133,10 @@ void Application::Update() {
 
                 a->isColliding++;
                 b->isColliding++;
-                _contacts.push_back(contact);
+
+                if(_isDebug) {
+                    _contacts.push_back(contact);
+                }
             }
         }
     }
@@ -144,13 +155,13 @@ void Application::Render() {
         } else {
             color = 0xFFFFFFFF;
         }
-        if(body->shape->GetType() == CIRCLE) {
+        PolygonShape* shape = dynamic_cast<PolygonShape*>(body->shape);
+        if(!shape && body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(body->shape);
             Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
             //Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
-        } else if(body->shape->GetType() == BOX) {
-            BoxShape* box = static_cast<BoxShape*>(body->shape);
-            Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
+        } else if(shape) {
+            Graphics::DrawPolygon(body->position.x, body->position.y, shape->worldVertices, color);
         }
     }
 

@@ -53,7 +53,7 @@ float PolygonShape::FindMinimumSeperation(const PolygonShape* other, Vec2& axis,
 }
 
 float PolygonShape::GetMomentOfInertia() const {
-    return 0.f;
+    return 5000.f;
 }
 
 Shape* PolygonShape::Clone() const {

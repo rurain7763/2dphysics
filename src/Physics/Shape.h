@@ -33,6 +33,7 @@ struct PolygonShape : public Shape {
     
     PolygonShape() = default;
     PolygonShape(const std::vector<Vec2>& vertices);
+    virtual ~PolygonShape() = default;
 
     void UpdateVertices(Vec2 position, float rotation);
 

@@ -10,11 +10,11 @@
 class Application {
     private:
         bool _running = false;
+        bool _isDebug = false;
         int _prevFrameTime;
 
         std::vector<Body*> _bodies;
         std::vector<Contact> _contacts;
-        Vec2 _pushForce = Vec2(0, 0);
 
     public:
         Application() = default;
