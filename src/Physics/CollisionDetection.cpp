@@ -89,85 +89,76 @@ bool CollisionDetection::IsCollidingCirclePolygon(Body* a, Body* b, Contact& con
     float distToEdge = std::numeric_limits<float>::lowest();
     Vec2 closestEdgeStart;
     Vec2 closestEdgeEnd;
-    Vec2 closestEdge;
 
     for(int i = 0; i < polygon->worldVertices.size(); i++) {
         Vec2 edge = polygon->EdgeAt(i);
+        Vec2 edgeNormal = edge.Normal();
         Vec2 toCircle = a->position - polygon->worldVertices[i];
 
-        float projection = edge.Normal().Dot(toCircle);
+        float projection = toCircle.Dot(edgeNormal);
 
         if(projection > distToEdge) {
             distToEdge = projection;
             closestEdgeStart = polygon->worldVertices[i];
             closestEdgeEnd = closestEdgeStart + edge;
-            closestEdge = edge;
         }
     }
 
-    bool isOutside = distToEdge > 0.f;
+    if(distToEdge > 0.f) {
+        // circle centr is outside of the polygon
+        Vec2 v1 = a->position - closestEdgeStart;
+        Vec2 v2 = closestEdgeEnd - closestEdgeStart;
 
-    if(isOutside) {
-        Vec2 toCircle = a->position - closestEdgeStart;
-        float projection = closestEdge.Dot(toCircle);
-
-        if(projection < 0) {
+        if(v1.Dot(v2) < 0) {
             // region a
-            float distToCircle = toCircle.Magnitude();
+            float distToCircle = v1.Magnitude();
             if(distToCircle < circle->radius) {
                 contact.a = b;
                 contact.b = a;
-                contact.normal = toCircle / distToCircle;
-                contact.start = a->position - contact.normal * circle->radius;
-                contact.end = closestEdgeStart;
                 contact.depth = circle->radius - distToCircle;
+                contact.normal = v1 / distToCircle;
+                contact.start = a->position - contact.normal * circle->radius;
+                contact.end = contact.start + contact.normal * contact.depth;
                 return true;
             }
         } else {
-            float edgeLength = closestEdge.Magnitude();
-            projection /= edgeLength;
+            v1 = a->position - closestEdgeEnd;
+            v2 = closestEdgeStart - closestEdgeEnd;
 
-            if(projection < edgeLength) {
+            if(v1.Dot(v2) < 0) {
                 // region b
-                Vec2 closestPoint = closestEdgeStart + (closestEdge / edgeLength * projection);
-                toCircle = a->position - closestPoint;
-                float distToCircle = toCircle.Magnitude();
-
+                float distToCircle = v1.Magnitude();
                 if(distToCircle < circle->radius) {
                     contact.a = b;
                     contact.b = a;
-                    contact.normal = toCircle / distToCircle;
+                    contact.depth = circle->radius - distToCircle;
+                    contact.normal = v1 / distToCircle;
                     contact.start = a->position - contact.normal * circle->radius;
-                    contact.end = closestPoint;
-                    contact.depth = (contact.end - contact.start).Magnitude();
+                    contact.end = contact.start + contact.normal * contact.depth;
                     return true;
-                }
+                }               
             } else {
                 // region c
-                toCircle = a->position - closestEdgeEnd;
-                float distToCircle = toCircle.Magnitude();
-
-                if(distToCircle < circle->radius) {
+                if(distToEdge < circle->radius) {
                     contact.a = b;
                     contact.b = a;
-                    contact.normal = toCircle / distToCircle;
+                    contact.depth = circle->radius - distToEdge;
+                    contact.normal = (closestEdgeEnd - closestEdgeStart).Normal();
                     contact.start = a->position - contact.normal * circle->radius;
-                    contact.end = closestEdgeEnd;
-                    contact.depth = circle->radius - distToCircle;
+                    contact.end = contact.start + contact.normal * contact.depth;
                     return true;
                 }
             }
         }
     } else {
-        // always colliding
-        Vec2 toCircle = b->position - a->position;
-
+        // circle center is inside the polygon
+        // therefore always colliding
         contact.a = b;
         contact.b = a;
-        contact.normal = toCircle.UnitVector();
-        contact.start = a->position - contact.normal * circle->radius;
-        contact.end = b->position + contact.normal * (circle->radius - distToEdge);
         contact.depth = circle->radius - distToEdge;
+        contact.normal = (closestEdgeEnd - closestEdgeStart).Normal();
+        contact.start = a->position - contact.normal * circle->radius;
+        contact.end = contact.start + contact.normal * circle->radius;
 
         return true;
     }
