@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "vector": "cpp",
-        "limits": "cpp",
-        "__availability": "cpp",
-        "__config": "cpp",
-        "*.tcc": "cpp"
-    }
-}

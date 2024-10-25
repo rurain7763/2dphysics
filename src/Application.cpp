@@ -3,6 +3,7 @@
 #include "Physics/Force.h"
 #include "Physics/CollisionDetection.h"
 #include "Physics/Contact.h"
+#include "Actor.h"
 
 #include <iostream>
 
@@ -30,6 +31,9 @@ void Application::Setup() {
     _bodies.push_back(leftWall);
     _bodies.push_back(rightWall);
     _bodies.push_back(b);
+
+    Actor* actor = new Actor(b, "assets/crate.png");
+    _actors.push_back(actor);
     
     _prevFrameTime = SDL_GetTicks();
 }
@@ -61,6 +65,8 @@ void Application::Input() {
                     Body* body;
                     if(shapeFlag == 0) {
                         body = new Body(CircleShape(25), msX, msY, 1.0);
+                        Actor* actor = new Actor(body, "assets/basketball.png");
+                        _actors.push_back(actor);
                     } else {
                         int edgeCount = 3 + rand() % 7;
                         float deg = 360.f / edgeCount;
@@ -165,6 +171,16 @@ void Application::Render() {
         }
     }
 
+    for(auto actor : _actors) {
+        if(actor->body->shape->GetType() == BOX) {
+            BoxShape* box = static_cast<BoxShape*>(actor->body->shape);
+            Graphics::DrawTexture(actor->body->position.x, actor->body->position.y, box->width, box->height, actor->body->rotation, actor->texture);
+        } else if(actor->body->shape->GetType() == CIRCLE) {
+            CircleShape* circle = static_cast<CircleShape*>(actor->body->shape);
+            Graphics::DrawTexture(actor->body->position.x, actor->body->position.y, circle->radius * 2, circle->radius * 2, actor->body->rotation, actor->texture);
+        }
+    }
+
     for(auto& contact : _contacts) {
         Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFFFF00);
         Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFF00);
@@ -182,5 +198,10 @@ void Application::Destroy() {
     for(auto particle : _bodies) {
         delete particle;
     }
+
+    for(auto actor : _actors) {
+        delete actor;
+    }
+
     Graphics::CloseWindow();
 }

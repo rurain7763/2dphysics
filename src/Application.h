@@ -4,6 +4,7 @@
 #include "./Graphics.h"
 #include "Physics/Body.h"
 #include "Physics/Contact.h"
+#include "Actor.h"
 
 #include <vector>
 
@@ -14,6 +15,7 @@ class Application {
         int _prevFrameTime;
 
         std::vector<Body*> _bodies;
+        std::vector<Actor*> _actors;
         std::vector<Contact> _contacts;
 
     public:
