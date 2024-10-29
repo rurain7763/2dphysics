@@ -46,9 +46,7 @@ void World::Update(float deltaTime) {
         body->UpdateBody(deltaTime);
     }
 
-    for(int i = 0; i < 10; i++) {
-        CheckCollisions();
-    }
+    CheckCollisions();
 }
 
 void World::CheckCollisions() {
