@@ -112,11 +112,8 @@ void Body::ApplyImpulse(const Vec2& impulse, const Vec2& contactVector) {
 void Body::UpdateBody(float deltaTime) {
     IntegrateLinear(deltaTime);
     IntegrateAngular(deltaTime);
-    if(shape->GetType() == POLYGON || shape->GetType() == BOX) {
-        PolygonShape* polygon = static_cast<PolygonShape*>(shape);
-        polygon->UpdateVertices(position, rotation);
-    }
-}
+    shape->UpdateVertices(position, rotation);
+} 
 
 bool Body::IsStatic() { 
     const float epsilon = 0.005f; 

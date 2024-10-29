@@ -1,5 +1,11 @@
 #include "Shape.h"
 
+#include <iostream>
+
+void CircleShape::UpdateVertices(const Vec2& position, float rotation) {
+    return;
+}
+
 float CircleShape::GetMomentOfInertia() const {
     return (radius * radius) * 0.5f;
 }
@@ -13,7 +19,7 @@ PolygonShape::PolygonShape(const std::vector<Vec2>& vertices) {
     worldVertices = vertices;
 }
 
-void PolygonShape::UpdateVertices(Vec2 position, float rotation) {
+void PolygonShape::UpdateVertices(const Vec2& position, float rotation) {
     for(int i = 0; i < localVertices.size(); i++) {
         worldVertices[i] = localVertices[i].Rotate(rotation);
         worldVertices[i] += position;

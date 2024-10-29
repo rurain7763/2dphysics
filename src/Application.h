@@ -5,6 +5,7 @@
 #include "Physics/Body.h"
 #include "Physics/Contact.h"
 #include "Actor.h"
+#include "Physics/World.h"
 
 #include <vector>
 
@@ -14,9 +15,8 @@ class Application {
         bool _isDebug = false;
         int _prevFrameTime;
 
-        std::vector<Body*> _bodies;
+        World* _world;        
         std::vector<Actor*> _actors;
-        std::vector<Contact> _contacts;
 
     public:
         Application() = default;

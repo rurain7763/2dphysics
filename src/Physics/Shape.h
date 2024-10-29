@@ -12,6 +12,8 @@ enum ShapeType {
 struct Shape {
     virtual ~Shape() = default;
 
+    virtual void UpdateVertices(const Vec2& position, float rotation) = 0;
+
     virtual float GetMomentOfInertia() const = 0;
     virtual Shape* Clone() const = 0;
     virtual ShapeType GetType() const = 0;
@@ -21,6 +23,8 @@ struct CircleShape : public Shape {
     float radius;
 
     CircleShape(const float radius) : radius(radius) {}
+
+    virtual void UpdateVertices(const Vec2& position, float rotation) override;
 
     virtual float GetMomentOfInertia() const override;
     virtual Shape* Clone() const override;
@@ -35,7 +39,7 @@ struct PolygonShape : public Shape {
     PolygonShape(const std::vector<Vec2>& vertices);
     virtual ~PolygonShape() = default;
 
-    void UpdateVertices(Vec2 position, float rotation);
+    virtual void UpdateVertices(const Vec2& position, float rotation) override;
 
     Vec2 EdgeAt(int idx) const;
 

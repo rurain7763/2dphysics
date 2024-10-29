@@ -17,6 +17,8 @@ bool Application::IsRunning() {
 void Application::Setup() {
     _running = Graphics::OpenWindow();
 
+    _world = new World(-9.8f);
+
     Body* floor = new Body(BoxShape(2000, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
     floor->restitution = 0.1f;
     Body* leftWall = new Body(BoxShape(100, 2000), 50, Graphics::Height() / 2, 0.0);
@@ -27,10 +29,11 @@ void Application::Setup() {
     b->restitution = 0.5f;
     b->friction = 0.1f;
     b->rotation = 0.5f;
-    _bodies.push_back(floor);
-    _bodies.push_back(leftWall);
-    _bodies.push_back(rightWall);
-    _bodies.push_back(b);
+
+    _world->AddBody(floor);
+    _world->AddBody(leftWall);
+    _world->AddBody(rightWall);
+    _world->AddBody(b);
 
     Actor* actor = new Actor(b, "assets/crate.png");
     _actors.push_back(actor);
@@ -84,10 +87,13 @@ void Application::Input() {
 
                         body = new Body(PolygonShape(vertices), msX, msY, 1.0);
                         body->restitution = 0.5f;
+
+                        Actor* actor = new Actor(body, "");
+                        _actors.push_back(actor);
                     }
 
                     shapeFlag = (shapeFlag + 1) % 2;
-                    _bodies.push_back(body);    
+                    _world->AddBody(body);
                 }
                 break;
             case SDL_MOUSEMOTION:
@@ -113,39 +119,8 @@ void Application::Update() {
         deltaTime = 0.016f;
     }
     _prevFrameTime = SDL_GetTicks();
-
     
-    for(auto body : _bodies) {
-        Vec2 drag = Force::GenerateDragForce(*body, 0.002);
-        body->AddForce(drag);
-
-        Vec2 weight(0.f, body->mass * 9.8f * PIXELS_PER_METER);
-        body->AddForce(weight);
-    }
-
-    for(auto body : _bodies) {
-        body->isColliding = 0;
-        body->UpdateBody(deltaTime);
-    }
-
-    for(int i = 0; i < _bodies.size() - 1; i++) {
-        for(int j = i + 1; j < _bodies.size(); j++) {
-            Body* a = _bodies[i];
-            Body* b = _bodies[j];
-
-            Contact contact;
-            if(CollisionDetection::IsCollision(a, b, contact)) {
-                contact.ResolveCollision();
-
-                a->isColliding++;
-                b->isColliding++;
-
-                if(_isDebug) {
-                    _contacts.push_back(contact);
-                }
-            }
-        }
-    }
+    _world->Update(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,23 +129,6 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF000030);
 
-    for(auto body : _bodies) {
-        uint32_t color;
-        if(body->isColliding) {
-            color = 0xFF0000FF;
-        } else {
-            color = 0xFFFFFFFF;
-        }
-        PolygonShape* shape = dynamic_cast<PolygonShape*>(body->shape);
-        if(!shape && body->shape->GetType() == CIRCLE) {
-            CircleShape* circle = static_cast<CircleShape*>(body->shape);
-            Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
-            //Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
-        } else if(shape) {
-            Graphics::DrawPolygon(body->position.x, body->position.y, shape->worldVertices, color);
-        }
-    }
-
     for(auto actor : _actors) {
         if(actor->body->shape->GetType() == BOX) {
             BoxShape* box = static_cast<BoxShape*>(actor->body->shape);
@@ -178,15 +136,24 @@ void Application::Render() {
         } else if(actor->body->shape->GetType() == CIRCLE) {
             CircleShape* circle = static_cast<CircleShape*>(actor->body->shape);
             Graphics::DrawTexture(actor->body->position.x, actor->body->position.y, circle->radius * 2, circle->radius * 2, actor->body->rotation, actor->texture);
+        } else {
+            PolygonShape* polygon = static_cast<PolygonShape*>(actor->body->shape);
+            Graphics::DrawFillPolygon(actor->body->position.x, actor->body->position.y, polygon->worldVertices, 0xFFFFFFFF);
         }
     }
 
-    for(auto& contact : _contacts) {
-        Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFFFF00);
-        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFF00);
-        Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFFFF00);
+    if(_isDebug) {
+        for(auto body : _world->GetBodies()) {
+            PolygonShape* shape = dynamic_cast<PolygonShape*>(body->shape);
+            if(!shape && body->shape->GetType() == CIRCLE) {
+                CircleShape* circle = static_cast<CircleShape*>(body->shape);
+                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, 0xFFFFFF00);
+                //Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, color);
+            } else if(shape) {
+                Graphics::DrawPolygon(body->position.x, body->position.y, shape->worldVertices, 0xFFFFFF00);
+            }
+        }
     }
-    _contacts.clear();
 
     Graphics::RenderFrame();
 }
@@ -195,9 +162,7 @@ void Application::Render() {
 // Destroy function to delete objects and close the window
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Destroy() {
-    for(auto particle : _bodies) {
-        delete particle;
-    }
+    delete _world;
 
     for(auto actor : _actors) {
         delete actor;
