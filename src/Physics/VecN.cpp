@@ -9,11 +9,7 @@ VecN::VecN(int n)
 }
 
 VecN::VecN(const VecN& other) {
-    n = other.n;
-    data = new float[n];
-    for(int i = 0; i < n; i++) {
-        data[i] = other[i];
-    }
+    *this = other; 
 }
 
 VecN::~VecN() {
@@ -36,7 +32,6 @@ float VecN::Dot(const VecN& v) const {
 
 VecN& VecN::operator=(const VecN& other) {
     if(data) {
-        n = 0;
         delete[] data;
     }
 
