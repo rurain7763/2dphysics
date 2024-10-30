@@ -78,4 +78,19 @@ MatMN MatMN::operator*(const MatMN& v) const {
     return ret;
 }
 
+VecN MatMN::GauseSeidel(const MatMN& lhs, const VecN& rhs) {
+    VecN x(rhs.n);
+    x.Zero();
+
+    for(int i = 0; i < rhs.n; i++) {
+        for(int j = 0; j < rhs.n; j++) {
+            if(lhs.rows[i][i] != 0.f) {
+                x[i] += (rhs[i] / lhs.rows[i][i]) - (lhs.rows[i].Dot(x) / lhs.rows[i][i]);
+            }
+        }
+    }
+
+    return x;
+}
+
 

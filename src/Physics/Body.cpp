@@ -91,14 +91,21 @@ void Body::ClearTorque() {
     sumTorque = 0.f;
 }
 
-void Body::ApplyImpulse(const Vec2& impulse) {
+void Body::ApplyImpulseLinear(const Vec2& impulse) {
     if(IsStatic()) {
         return;
     }
     velocity += impulse * invMass;
 }
 
-void Body::ApplyImpulse(const Vec2& impulse, const Vec2& contactVector) {
+void Body::ApplyImpulseAngular(const float impulse) {
+    if(IsStatic()) {
+        return;
+    }
+    angularVelocity += impulse * invI;
+}
+
+void Body::ApplyImpulseAtPoint(const Vec2& impulse, const Vec2& contactVector) {
     if(IsStatic()) {
         return;
     }
