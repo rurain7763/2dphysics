@@ -38,18 +38,19 @@ struct Body {
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
 
+    void IntergrateForces(float dt);
+    void IntergrateVelocities(float dt);
+
     void ClearForces();
     void ClearTorque();
-
-    void IntegrateLinear(float dt);
-    void IntegrateAngular(float dt);
 
     void ApplyImpulse(const Vec2& impulse);
     void ApplyImpulse(const Vec2& impulse, const Vec2& contactVector);
 
-    void UpdateBody(float deltaTime);
-
     bool IsStatic();
+
+    Vec2 WorldToLocal(const Vec2& worldPoint) const;
+    Vec2 LocalToWorld(const Vec2& localPoint) const;
 
     Body& operator=(const Body& other);
 };

@@ -57,41 +57,38 @@ void Body::AddTorque(float torque) {
     sumTorque += torque;
 }
 
+void Body::IntergrateForces(float dt) {
+    if(IsStatic()) {
+        ClearForces();
+        ClearTorque();
+        return;
+    }
+
+    acceleration = sumForces * invMass;
+    velocity += acceleration * dt;
+
+    angularAcceleration = sumTorque * invI;
+    angularVelocity += angularAcceleration * dt;
+
+    ClearForces();
+    ClearTorque();
+}
+
+void Body::IntergrateVelocities(float dt) {
+    if(IsStatic()) return;
+
+    position += velocity * dt;
+    rotation += angularVelocity * dt;
+
+    shape->UpdateVertices(position, rotation);
+}
+
 void Body::ClearForces() {
     sumForces = Vec2(0.f, 0.f);
 }
 
 void Body::ClearTorque() {
     sumTorque = 0.f;
-}
-
-void Body::IntegrateLinear(float dt) {
-    if(IsStatic()) {
-        ClearForces();
-        return;
-    }
-
-    acceleration = sumForces * invMass;
-
-    // Euler integration
-    velocity += acceleration * dt;
-    position += velocity * dt;
-
-    ClearForces();
-}
-
-void Body::IntegrateAngular(float dt) {
-    if(IsStatic()) {
-        ClearTorque();
-        return;
-    }
-
-    angularAcceleration = sumTorque * invI;
-
-    angularVelocity += angularAcceleration * dt;
-    rotation += angularVelocity * dt;
-
-    ClearTorque();
 }
 
 void Body::ApplyImpulse(const Vec2& impulse) {
@@ -109,15 +106,21 @@ void Body::ApplyImpulse(const Vec2& impulse, const Vec2& contactVector) {
     angularVelocity += contactVector.Cross(impulse) * invI;
 }
 
-void Body::UpdateBody(float deltaTime) {
-    IntegrateLinear(deltaTime);
-    IntegrateAngular(deltaTime);
-    shape->UpdateVertices(position, rotation);
-} 
-
 bool Body::IsStatic() { 
     const float epsilon = 0.005f; 
     return fabs(invMass - 0.0) < epsilon; 
+}
+
+Vec2 Body::WorldToLocal(const Vec2& worldPoint) const {
+    Vec2 ret = worldPoint - position;
+    ret = ret.Rotate(-rotation);
+    return ret;
+}
+
+Vec2 Body::LocalToWorld(const Vec2& localPoint) const {
+    Vec2 ret = localPoint.Rotate(rotation);
+    ret += position;
+    return ret;
 }
 
 Body& Body::operator=(const Body& other) {

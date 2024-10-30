@@ -19,25 +19,14 @@ void Application::Setup() {
 
     _world = new World(-9.8f);
 
-    Body* floor = new Body(BoxShape(2000, 100), Graphics::Width() / 2, Graphics::Height() - 150, 0.0);
-    floor->restitution = 0.1f;
-    Body* leftWall = new Body(BoxShape(100, 2000), 50, Graphics::Height() / 2, 0.0);
-    leftWall->restitution = 0.1f;
-    Body* rightWall = new Body(BoxShape(100, 2000), Graphics::Width() - 50, Graphics::Height() / 2, 0.0);
-    rightWall->restitution = 0.1f;
-    Body* b = new Body(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    b->restitution = 0.5f;
-    b->friction = 0.1f;
-    b->rotation = 0.5f;
-
-    _world->AddBody(floor);
-    _world->AddBody(leftWall);
-    _world->AddBody(rightWall);
+    Body* a = new Body(CircleShape(30), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
+    Body* b = new Body(CircleShape(20), a->position.x - 100, Graphics::Height() / 2, 1.0);
+    _world->AddBody(a);
     _world->AddBody(b);
 
-    Actor* actor = new Actor(b, "assets/crate.png");
-    _actors.push_back(actor);
-    
+    JointConstraint* joint = new JointConstraint(a, b, a->position);
+    _world->AddConstraint(joint);
+
     _prevFrameTime = SDL_GetTicks();
 }
 

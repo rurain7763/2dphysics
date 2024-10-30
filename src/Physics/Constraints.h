@@ -13,18 +13,30 @@ public:
 
     virtual void Solve() = 0;
 
-    Body* a;
-    Body* b;
+protected:
+    Body* _a;
+    Body* _b;
+
+    Vec2 _aPoint; // the anchor point in a's local space
+    Vec2 _bPoint; // the anchor point in b's local space
 };
 
-class DistanceConstraint : public Constraints {
+class JointConstraint : public Constraints {
 public:
+    JointConstraint(Body* a, Body* b, const Vec2& anchor);
+
     virtual void Solve() override;
+
+private:
+    MatMN _jacobian;
 };
 
 class PenetrationConstraint : public Constraints {
 public:
     virtual void Solve() override;
+
+private:
+    MatMN _jacobian;
 };
 
 #endif

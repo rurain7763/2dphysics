@@ -10,6 +10,10 @@ World::~World() {
     for(auto body : _bodies) {
         delete body;
     }
+
+    for(auto constraint : _constraints) {
+        delete constraint;
+    }
 }
 
 void World::AddBody(Body* body) {
@@ -28,6 +32,14 @@ void World::AddTorque(float torque) {
     _torques.push_back(torque);
 }
 
+void World::AddConstraint(Constraints* constraint) {
+    _constraints.push_back(constraint);
+}
+
+std::vector<Constraints*>& World::GetConstraints() {
+    return _constraints;
+}
+
 void World::Update(float deltaTime) {
     for(auto body : _bodies) {
         Vec2 weight(0.f, body->mass * _gravity * PIXELS_PER_METER);
@@ -43,7 +55,15 @@ void World::Update(float deltaTime) {
     }
 
     for(auto body : _bodies) {
-        body->UpdateBody(deltaTime);
+        body->IntergrateForces(deltaTime);
+    }
+
+    for(auto constrint : _constraints) {
+        constrint->Solve();
+    }
+
+    for(auto body : _bodies) {
+        body->IntergrateVelocities(deltaTime);
     }
 
     CheckCollisions();
