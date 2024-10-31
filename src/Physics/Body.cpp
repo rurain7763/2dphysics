@@ -30,6 +30,7 @@ Body::Body(const Shape& shape, float x, float y, float mass) {
     sumForces = Vec2(0.f, 0.f);
     sumTorque = 0.f;
 
+    this->shape->UpdateVertices(position, rotation);
     std::cout << "Particle constructor called!\n";
 }
 

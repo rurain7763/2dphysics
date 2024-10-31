@@ -58,8 +58,18 @@ void World::Update(float deltaTime) {
         body->IntergrateForces(deltaTime);
     }
 
-    for(auto constrint : _constraints) {
-        constrint->Solve();
+    for(auto contraint : _constraints) {
+        contraint->PreSolve();
+    }
+
+    for(int i = 0; i < 5; i++) {
+        for(auto contraint : _constraints) {
+            contraint->Solve();
+        }
+    }
+
+    for(auto contraint : _constraints) {
+        contraint->PostSolve();
     }
 
     for(auto body : _bodies) {

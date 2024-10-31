@@ -19,13 +19,20 @@ void Application::Setup() {
 
     _world = new World(-9.8f);
 
-    Body* a = new Body(CircleShape(30), Graphics::Width() / 2, Graphics::Height() / 2, 0.0);
-    Body* b = new Body(CircleShape(20), a->position.x - 100, Graphics::Height() / 2, 1.0);
-    _world->AddBody(a);
-    _world->AddBody(b);
+    for(int i = 0; i < 10; i++) {
+        float mass = i == 0 ? 0.0 : 1.0;
+        Body* box = new Body(BoxShape(20, 20), Graphics::Width() / 2 + 20 * i, 100, mass);
+        Actor* actor = new Actor(box, "assets/box.png");
+        _actors.push_back(actor);
+        _world->AddBody(box);
+    }
 
-    JointConstraint* joint = new JointConstraint(a, b, a->position);
-    _world->AddConstraint(joint);
+    for(int i = 1; i < 10; i++) {
+        Body* a = _world->GetBodies()[i - 1];
+        Body* b = _world->GetBodies()[i];
+        JointConstraint* joint = new JointConstraint(a, b, a->position);
+        _world->AddConstraint(joint);
+    }
 
     _prevFrameTime = SDL_GetTicks();
 }
@@ -117,6 +124,17 @@ void Application::Update() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
     Graphics::ClearScreen(0xFF000030);
+
+    if(_isDebug) {
+        for(auto constraint : _world->GetConstraints()) {
+            JointConstraint* joint = dynamic_cast<JointConstraint*>(constraint);
+            if(joint) {
+                Vec2 a = joint->GetBodyA()->position;
+                Vec2 b = joint->GetBodyB()->position;
+                Graphics::DrawLine(a.x, a.y, b.x, b.y, 0xFF0000FF);
+            }
+        }
+    }
 
     for(auto actor : _actors) {
         if(actor->body->shape->GetType() == BOX) {

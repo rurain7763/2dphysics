@@ -11,7 +11,12 @@ public:
     MatMN GetInvMassMat() const;
     VecN GetVelocities() const;
 
+    virtual void PreSolve() {}
     virtual void Solve() = 0;
+    virtual void PostSolve() {}
+
+    inline Body* GetBodyA() const { return _a; }
+    inline Body* GetBodyB() const { return _b; }
 
 protected:
     Body* _a;
@@ -25,10 +30,13 @@ class JointConstraint : public Constraints {
 public:
     JointConstraint(Body* a, Body* b, const Vec2& anchor);
 
+    virtual void PreSolve() override;
     virtual void Solve() override;
+    virtual void PostSolve() override;
 
 private:
     MatMN _jacobian;
+    VecN _cachedLambda;
 };
 
 class PenetrationConstraint : public Constraints {

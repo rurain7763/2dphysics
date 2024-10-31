@@ -30,15 +30,16 @@ VecN Constraints::GetVelocities() const {
 }
 
 JointConstraint::JointConstraint(Body* a, Body* b, const Vec2& anchor) 
-    : _jacobian(1, 6)
+    : _jacobian(1, 6), _cachedLambda(6)
 {
     _a = a;
     _b = b;
     _aPoint = a->WorldToLocal(anchor);
     _bPoint = b->WorldToLocal(anchor);
+    _cachedLambda.Zero();
 }
 
-void JointConstraint::Solve() {
+void JointConstraint::PreSolve() {
     // Calculate the jacobian
     const Vec2 pa = _a->LocalToWorld(_aPoint);
     const Vec2 pb = _b->LocalToWorld(_bPoint);
@@ -62,6 +63,19 @@ void JointConstraint::Solve() {
     float j4 = rb.Cross(pb - pa) * 2.f;
     _jacobian.rows[0][5] = j4; // angular
 
+    // Warm star   
+    const MatMN jacobianT = _jacobian.Transpose();
+    VecN impulses = jacobianT * _cachedLambda;
+
+    // Apply lambda to the bodies
+    _a->ApplyImpulseLinear(Vec2(impulses.data[0], impulses.data[1]));
+    _a->ApplyImpulseAngular(impulses.data[2]);
+
+    _b->ApplyImpulseLinear(Vec2(impulses.data[3], impulses.data[4]));
+    _b->ApplyImpulseAngular(impulses.data[5]);
+}
+
+void JointConstraint::Solve() {
     // Calculate lambda = -(jacobian * V + bias) / (jacobian * invM * jacobian^T)
     const VecN V = GetVelocities();
     const MatMN invM = GetInvMassMat();
@@ -72,6 +86,7 @@ void JointConstraint::Solve() {
     VecN rhs = (_jacobian * V) * -1.f;
 
     VecN lambda = MatMN::GauseSeidel(lhs, rhs);
+    _cachedLambda += lambda;
 
     // Compute final impulses with direction and magnitude
     VecN impulses = jacobianT * lambda;
@@ -82,4 +97,8 @@ void JointConstraint::Solve() {
 
     _b->ApplyImpulseLinear(Vec2(impulses.data[3], impulses.data[4]));
     _b->ApplyImpulseAngular(impulses.data[5]);
+}
+
+void JointConstraint::PostSolve() {
+    _cachedLambda.Zero();
 }
