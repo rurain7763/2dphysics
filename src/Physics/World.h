@@ -3,7 +3,7 @@
 
 #include "Body.h"
 #include "Vec2.h"
-#include "Constraints.h"
+#include "Constraint.h"
 
 #include <vector>
 
@@ -18,8 +18,8 @@ public:
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
 
-    void AddConstraint(Constraints* constraint);
-    std::vector<Constraints*>& GetConstraints();
+    void AddConstraint(Constraint* constraint);
+    std::vector<Constraint*>& GetConstraints();
 
     void Update(float deltaTime);
 
@@ -29,7 +29,7 @@ private:
     std::vector<Body*> _bodies;
     std::vector<Vec2> _forces;
     std::vector<float> _torques;
-    std::vector<Constraints*> _constraints;
+    std::vector<Constraint*> _constraints;
 
     float _gravity = 9.8f;
 };

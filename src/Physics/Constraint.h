@@ -4,9 +4,9 @@
 #include "Body.h"
 #include "MatMN.h"
 
-class Constraints {
+class Constraint {
 public:
-    virtual ~Constraints() = default;
+    virtual ~Constraint() = default;
 
     MatMN GetInvMassMat() const;
     VecN GetVelocities() const;
@@ -23,13 +23,12 @@ protected:
     Vec2 _bPoint; // the anchor point in b's local space
 };
 
-class JointConstraint : public Constraints {
+class JointConstraint : public Constraint {
 public:
     JointConstraint(Body* a, Body* b, const Vec2& anchor);
 
     virtual void PreSolve(float dt) override;
     virtual void Solve() override;
-    virtual void PostSolve() override;
 
 private:
     MatMN _jacobian;
@@ -37,12 +36,19 @@ private:
     float _bias;
 };
 
-class PenetrationConstraint : public Constraints {
+class PenetrationConstraint : public Constraint {
 public:
+    PenetrationConstraint(Body* a, Body* b, const Vec2& aContact, const Vec2& bContact, const Vec2& normal);
+
+    virtual void PreSolve(float dt) override;
     virtual void Solve() override;
 
 private:
     MatMN _jacobian;
+    VecN _cachedLambda;
+    float _bias;
+
+    Vec2 normal;
 };
 
 #endif

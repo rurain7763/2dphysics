@@ -32,11 +32,11 @@ void World::AddTorque(float torque) {
     _torques.push_back(torque);
 }
 
-void World::AddConstraint(Constraints* constraint) {
+void World::AddConstraint(Constraint* constraint) {
     _constraints.push_back(constraint);
 }
 
-std::vector<Constraints*>& World::GetConstraints() {
+std::vector<Constraint*>& World::GetConstraints() {
     return _constraints;
 }
 

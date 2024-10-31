@@ -78,7 +78,7 @@ MatMN MatMN::operator*(const MatMN& v) const {
     return ret;
 }
 
-VecN MatMN::GauseSeidel(const MatMN& lhs, const VecN& rhs) {
+VecN MatMN::GausseSeidel(const MatMN& lhs, const VecN& rhs) {
     VecN x(rhs.n);
     x.Zero();
 
