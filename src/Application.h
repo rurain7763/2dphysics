@@ -14,6 +14,7 @@ class Application {
         bool _running = false;
         bool _isDebug = false;
         int _prevFrameTime;
+        bool _isMouseDown = false;
 
         World* _world;        
         std::vector<Actor*> _actors;

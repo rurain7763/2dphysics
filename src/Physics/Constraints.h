@@ -15,9 +15,6 @@ public:
     virtual void Solve() = 0;
     virtual void PostSolve() {}
 
-    inline Body* GetBodyA() const { return _a; }
-    inline Body* GetBodyB() const { return _b; }
-
 protected:
     Body* _a;
     Body* _b;

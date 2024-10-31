@@ -19,20 +19,32 @@ void Application::Setup() {
 
     _world = new World(-9.8f);
 
-    for(int i = 0; i < 10; i++) {
-        float mass = i == 0 ? 0.0 : 1.0;
-        Body* box = new Body(BoxShape(20, 20), Graphics::Width() / 2 + 30 * i, 100, mass);
-        Actor* actor = new Actor(box, "assets/box.png");
-        _actors.push_back(actor);
-        _world->AddBody(box);
-    }
+    Body* floor = new Body(BoxShape(2000, 50), Graphics::Width() / 2, Graphics::Height() - 25, 0.0);
+    _world->AddBody(floor);
 
-    for(int i = 1; i < 10; i++) {
-        Body* a = _world->GetBodies()[i - 1];
-        Body* b = _world->GetBodies()[i];
-        JointConstraint* joint = new JointConstraint(a, b, a->position);
-        _world->AddConstraint(joint);
-    }
+    Body* head = new Body(CircleShape(25), 400, 100, 1.0);
+    _world->AddBody(head);
+
+    Body* torso = new Body(BoxShape(50, 100), 400, 185, 1.0);
+    _world->AddBody(torso);
+
+    Body* leftArm = new Body(BoxShape(100, 25), 315, 135, 1.0);
+    _world->AddBody(leftArm);
+
+    Body* rightArm = new Body(BoxShape(100, 25), 485, 135, 1.0);
+    _world->AddBody(rightArm);
+
+    Body* leftLeg = new Body(BoxShape(25, 100), 375, 300, 1.0);
+    _world->AddBody(leftLeg);
+
+    Body* rightLeg = new Body(BoxShape(25, 100), 425, 300, 1.0);
+    _world->AddBody(rightLeg);
+
+    _world->AddConstraint(new JointConstraint(head, torso, Vec2(400, 140)));
+    _world->AddConstraint(new JointConstraint(torso, leftArm, Vec2(370, 135)));
+    _world->AddConstraint(new JointConstraint(torso, rightArm, Vec2(430, 135)));
+    _world->AddConstraint(new JointConstraint(torso, leftLeg, Vec2(375, 250)));
+    _world->AddConstraint(new JointConstraint(torso, rightLeg, Vec2(425, 250)));
 
     _prevFrameTime = SDL_GetTicks();
 }
@@ -57,9 +69,11 @@ void Application::Input() {
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 {
-                    static int shapeFlag = 0;
                     int msX, msY;
                     SDL_GetMouseState(&msX, &msY);
+
+                    #if false
+                    static int shapeFlag = 0;
 
                     Body* body;
                     if(shapeFlag == 0) {
@@ -90,12 +104,19 @@ void Application::Input() {
 
                     shapeFlag = (shapeFlag + 1) % 2;
                     _world->AddBody(body);
+                    #endif
+                    _isMouseDown = true;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP:
+                {
+                    _isMouseDown = false;
                 }
                 break;
             case SDL_MOUSEMOTION:
                 {
-                    int msX2, msY2;
-                    SDL_GetMouseState(&msX2, &msY2);
+                    int msX, msY;
+                    SDL_GetMouseState(&msX, &msY);
                 }
                 break;
         }
@@ -115,6 +136,15 @@ void Application::Update() {
         deltaTime = 0.016f;
     }
     _prevFrameTime = SDL_GetTicks();
+
+    if(_isMouseDown) {
+        int msX, msY;
+        SDL_GetMouseState(&msX, &msY);
+
+        auto body = _world->GetBodies()[1];
+        Vec2 force = Vec2(msX, msY) - body->position;
+        body->AddForce(force * 25.f);            
+    }
     
     _world->Update(deltaTime);
 }
@@ -124,17 +154,6 @@ void Application::Update() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
     Graphics::ClearScreen(0xFF000030);
-
-    if(_isDebug) {
-        for(auto constraint : _world->GetConstraints()) {
-            JointConstraint* joint = dynamic_cast<JointConstraint*>(constraint);
-            if(joint) {
-                Vec2 a = joint->GetBodyA()->position;
-                Vec2 b = joint->GetBodyB()->position;
-                Graphics::DrawLine(a.x, a.y, b.x, b.y, 0xFF0000FF);
-            }
-        }
-    }
 
     for(auto actor : _actors) {
         if(actor->body->shape->GetType() == BOX) {
