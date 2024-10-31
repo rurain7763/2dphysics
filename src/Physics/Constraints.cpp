@@ -30,7 +30,7 @@ VecN Constraints::GetVelocities() const {
 }
 
 JointConstraint::JointConstraint(Body* a, Body* b, const Vec2& anchor) 
-    : _jacobian(1, 6), _cachedLambda(6)
+    : _jacobian(1, 6), _cachedLambda(6), _bias(0.f)
 {
     _a = a;
     _b = b;
@@ -39,7 +39,7 @@ JointConstraint::JointConstraint(Body* a, Body* b, const Vec2& anchor)
     _cachedLambda.Zero();
 }
 
-void JointConstraint::PreSolve() {
+void JointConstraint::PreSolve(float dt) {
     // Calculate the jacobian
     const Vec2 pa = _a->LocalToWorld(_aPoint);
     const Vec2 pb = _b->LocalToWorld(_bPoint);
@@ -73,6 +73,12 @@ void JointConstraint::PreSolve() {
 
     _b->ApplyImpulseLinear(Vec2(impulses.data[3], impulses.data[4]));
     _b->ApplyImpulseAngular(impulses.data[5]);
+
+    // Calculate bias
+    const float beta = 0.1f;
+    float C = (pa - pb).Dot(pa - pb);
+    C = std::max(0.f, C - 0.01f);
+    _bias = (beta / dt) * C;
 }
 
 void JointConstraint::Solve() {
@@ -84,6 +90,7 @@ void JointConstraint::Solve() {
     // Ax = b
     MatMN lhs = _jacobian * invM * jacobianT;
     VecN rhs = (_jacobian * V) * -1.f;
+    rhs.data[0] -= _bias;
 
     VecN lambda = MatMN::GauseSeidel(lhs, rhs);
     _cachedLambda += lambda;

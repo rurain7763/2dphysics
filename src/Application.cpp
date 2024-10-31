@@ -21,7 +21,7 @@ void Application::Setup() {
 
     for(int i = 0; i < 10; i++) {
         float mass = i == 0 ? 0.0 : 1.0;
-        Body* box = new Body(BoxShape(20, 20), Graphics::Width() / 2 + 20 * i, 100, mass);
+        Body* box = new Body(BoxShape(20, 20), Graphics::Width() / 2 + 30 * i, 100, mass);
         Actor* actor = new Actor(box, "assets/box.png");
         _actors.push_back(actor);
         _world->AddBody(box);

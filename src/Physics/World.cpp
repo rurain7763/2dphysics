@@ -59,7 +59,7 @@ void World::Update(float deltaTime) {
     }
 
     for(auto contraint : _constraints) {
-        contraint->PreSolve();
+        contraint->PreSolve(deltaTime);
     }
 
     for(int i = 0; i < 5; i++) {
