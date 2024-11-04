@@ -109,7 +109,7 @@ void JointConstraint::Solve() {
 }
 
 PenetrationConstraint::PenetrationConstraint(Body* a, Body* b, const Vec2& aContact, const Vec2& bContact, const Vec2& normal)
-    : _jacobian(1, 6), _cachedLambda(1), _bias(0.f)
+    : _jacobian(2, 6), _cachedLambda(2), _bias(0.f), _friction(0.f)
 {
     _a = a;
     _b = b;
@@ -144,6 +144,25 @@ void PenetrationConstraint::PreSolve(float dt) {
     float J4 = rb.Cross(n);
     _jacobian.rows[0][5] = J4;   // B angular velocity
 
+    _friction = std::max(_a->friction, _b->friction);
+    if(_friction > 0.f) {
+        Vec2 tangent = n.Normal();
+
+        Vec2 J5 = -tangent;
+        _jacobian.rows[1][0] = J5.x; // A linear velocity.x
+        _jacobian.rows[1][1] = J5.y; // A linear velocity.y
+
+        float J6 = -ra.Cross(tangent);
+        _jacobian.rows[1][2] = J6;   // A angular velocity
+
+        Vec2 J7 = tangent;
+        _jacobian.rows[1][3] = J7.x; // B linear velocity.x
+        _jacobian.rows[1][4] = J7.y; // B linear velocity.y
+
+        float J8 = rb.Cross(tangent);
+        _jacobian.rows[1][5] = J8;   // B angular velocity
+    }
+
     // Warm starting (apply cached lambda)
     const MatMN Jt = _jacobian.Transpose();
     VecN impulses = Jt * _cachedLambda;
@@ -177,7 +196,7 @@ void PenetrationConstraint::Solve() {
     // Accumulate impulses and clamp it within constraint limits
     VecN oldLambda = _cachedLambda;
     _cachedLambda += lambda;
-    _cachedLambda[0] = (_cachedLambda[0] < 0.0f) ? 0.0f : _cachedLambda[0];
+    _cachedLambda[0] = std::max(0.f, _cachedLambda[0]);
     lambda = _cachedLambda - oldLambda;
 
     // Compute the impulses with both direction and magnitude

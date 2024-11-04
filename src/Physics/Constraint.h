@@ -49,6 +49,7 @@ private:
     float _bias;
 
     Vec2 _normal;
+    float _friction;
 };
 
 #endif
