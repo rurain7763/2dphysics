@@ -1,5 +1,7 @@
 #include "Constraint.h"
 
+#include <iostream>
+
 MatMN Constraint::GetInvMassMat() const {
     MatMN ret(6, 6);
     ret.Zero();
@@ -30,7 +32,7 @@ VecN Constraint::GetVelocities() const {
 }
 
 JointConstraint::JointConstraint(Body* a, Body* b, const Vec2& anchor) 
-    : _jacobian(1, 6), _cachedLambda(6), _bias(0.f)
+    : _jacobian(1, 6), _cachedLambda(1), _bias(0.f)
 {
     _a = a;
     _b = b;
@@ -89,7 +91,7 @@ void JointConstraint::Solve() {
 
     // Ax = b
     MatMN lhs = _jacobian * invM * jacobianT;
-    VecN rhs = (_jacobian * V) * -1.f;
+    VecN rhs = _jacobian * V * -1.f;
     rhs.data[0] -= _bias;
 
     VecN lambda = MatMN::GausseSeidel(lhs, rhs);
@@ -107,12 +109,13 @@ void JointConstraint::Solve() {
 }
 
 PenetrationConstraint::PenetrationConstraint(Body* a, Body* b, const Vec2& aContact, const Vec2& bContact, const Vec2& normal)
-    : _jacobian(1, 6), _cachedLambda(6), _bias(0.f), normal(normal)
+    : _jacobian(1, 6), _cachedLambda(1), _bias(0.f)
 {
     _a = a;
     _b = b;
     _aPoint = a->WorldToLocal(aContact);
     _bPoint = b->WorldToLocal(bContact);
+    _normal = a->WorldToLocal(normal);
     _cachedLambda.Zero();
 }
 
@@ -120,7 +123,7 @@ void PenetrationConstraint::PreSolve(float dt) {
     // Get the collision points in world space
     const Vec2 pa = _a->LocalToWorld(_aPoint);
     const Vec2 pb = _b->LocalToWorld(_bPoint);
-    Vec2 n = _a->LocalToWorld(normal);
+    Vec2 n = _a->LocalToWorld(_normal);
 
     const Vec2 ra = pa - _a->position;
     const Vec2 rb = pb - _b->position;

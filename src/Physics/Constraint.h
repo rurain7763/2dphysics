@@ -48,7 +48,7 @@ private:
     VecN _cachedLambda;
     float _bias;
 
-    Vec2 normal;
+    Vec2 _normal;
 };
 
 #endif

@@ -41,7 +41,9 @@ std::vector<Constraint*>& World::GetConstraints() {
 }
 
 void World::Update(float deltaTime) {
-    for(auto body : _bodies) {
+    std::vector<PenetrationConstraint> penetrations;
+
+    for(auto& body : _bodies) {
         Vec2 weight(0.f, body->mass * _gravity * PIXELS_PER_METER);
         body->AddForce(weight);
 
@@ -54,32 +56,10 @@ void World::Update(float deltaTime) {
         }
     }
 
-    for(auto body : _bodies) {
+    for(auto& body : _bodies) {
         body->IntergrateForces(deltaTime);
     }
 
-    for(auto contraint : _constraints) {
-        contraint->PreSolve(deltaTime);
-    }
-
-    for(int i = 0; i < 5; i++) {
-        for(auto contraint : _constraints) {
-            contraint->Solve();
-        }
-    }
-
-    for(auto contraint : _constraints) {
-        contraint->PostSolve();
-    }
-
-    for(auto body : _bodies) {
-        body->IntergrateVelocities(deltaTime);
-    }
-
-    CheckCollisions();
-}
-
-void World::CheckCollisions() {
     for(int i = 0; i < _bodies.size() - 1; i++) {
         for(int j = i + 1; j < _bodies.size(); j++) {
             Body* a = _bodies[i];
@@ -87,8 +67,38 @@ void World::CheckCollisions() {
 
             Contact contact;
             if(CollisionDetection::IsCollision(a, b, contact)) {
-                contact.ResolveCollision();
+                penetrations.push_back(PenetrationConstraint(a, b, contact.start, contact.end, contact.normal));
             }
         }
+    }
+
+    for(auto& contraint : _constraints) {
+        contraint->PreSolve(deltaTime);
+    }
+
+    for(auto& penetration : penetrations) {
+        penetration.PreSolve(deltaTime);
+    }
+
+    for(int i = 0; i < 5; i++) {
+        for(auto& contraint : _constraints) {
+            contraint->Solve();
+        }
+
+        for(auto& penetration : penetrations) {
+            penetration.Solve();
+        }
+    }
+
+    for(auto& contraint : _constraints) {
+        contraint->PostSolve();
+    }
+
+    for(auto& penetration : penetrations) {
+        penetration.PostSolve();
+    }
+
+    for(auto& body : _bodies) {
+        body->IntergrateVelocities(deltaTime);
     }
 }

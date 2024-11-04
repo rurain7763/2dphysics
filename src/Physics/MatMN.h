@@ -12,7 +12,7 @@ struct MatMN {
     void Zero();
     MatMN Transpose() const;
 
-    MatMN& operator=(const MatMN& other);
+    void operator=(const MatMN& other);
 
     VecN operator*(const VecN& v) const;
     MatMN operator*(const MatMN& v) const;

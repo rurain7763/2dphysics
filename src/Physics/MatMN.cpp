@@ -12,7 +12,12 @@ MatMN::MatMN(int m, int n)
 }
 
 MatMN::MatMN(const MatMN& other) {
-    *this = other;
+    m = other.m;
+    n = other.n;
+    rows = new VecN[m];
+    for(int i = 0; i < m; i++) {
+        rows[i] = other.rows[i];
+    }
 }
 
 MatMN::~MatMN() {
@@ -29,25 +34,20 @@ MatMN MatMN::Transpose() const {
     MatMN ret(n, m);
     for(int i = 0; i < m; i++) {
         for(int j = 0; j < n; j++) {
-            ret.rows[j][i]= rows[i][j];
+            ret.rows[j][i] = rows[i][j];
         }
     }
     return ret;
 }
 
-MatMN& MatMN::operator=(const MatMN& other) {
-    if(rows) {
-        delete[] rows;
-    }
-
+void MatMN::operator=(const MatMN& other) {
+    delete[] rows;
     m = other.m;
     n = other.n;
     rows = new VecN[m];
     for(int i = 0; i < m; i++) {
         rows[i] = other.rows[i];
     } 
-
-    return *this;
 }
 
 VecN MatMN::operator*(const VecN& v) const {
@@ -78,19 +78,22 @@ MatMN MatMN::operator*(const MatMN& v) const {
     return ret;
 }
 
-VecN MatMN::GausseSeidel(const MatMN& lhs, const VecN& rhs) {
-    VecN x(rhs.n);
-    x.Zero();
+VecN MatMN::GausseSeidel(const MatMN& A, const VecN& b) {
+    const int N = b.n;
+	VecN X(N);
+	X.Zero();
 
-    for(int i = 0; i < rhs.n; i++) {
-        for(int j = 0; j < rhs.n; j++) {
-            if(lhs.rows[i][i] != 0.f) {
-                x[i] += (rhs[i] / lhs.rows[i][i]) - (lhs.rows[i].Dot(x) / lhs.rows[i][i]);
+	// Iterate N times
+	for (int iterations = 0; iterations < N; iterations++) {
+		for (int i = 0; i < N; i++) {
+            float dx = (b[i] / A.rows[i][i]) - (A.rows[i].Dot(X) / A.rows[i][i]);
+            if (dx == dx) {
+		        X[i] += dx;
             }
-        }
-    }
-
-    return x;
+		}
+	}
+    
+	return X;
 }
 
 

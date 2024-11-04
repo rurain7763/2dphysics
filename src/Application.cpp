@@ -19,32 +19,19 @@ void Application::Setup() {
 
     _world = new World(-9.8f);
 
-    Body* floor = new Body(BoxShape(2000, 50), Graphics::Width() / 2, Graphics::Height() - 25, 0.0);
+    Body* bigBall = new Body(CircleShape(64), Graphics::Width() / 2.0, Graphics::Height() / 2.0, 0.0);
+    _world->AddBody(bigBall);
+
+    // // Add a floor and walls to contain objects objects
+    Body* floor = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2.0, Graphics::Height() - 50, 0.0);
+    Body* leftWall = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
+    Body* rightWall = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
+    floor->restitution = 0.7;
+    leftWall->restitution = 0.2;
+    rightWall->restitution = 0.2;
     _world->AddBody(floor);
-
-    Body* head = new Body(CircleShape(25), 400, 100, 1.0);
-    _world->AddBody(head);
-
-    Body* torso = new Body(BoxShape(50, 100), 400, 185, 1.0);
-    _world->AddBody(torso);
-
-    Body* leftArm = new Body(BoxShape(100, 25), 315, 135, 1.0);
-    _world->AddBody(leftArm);
-
-    Body* rightArm = new Body(BoxShape(100, 25), 485, 135, 1.0);
-    _world->AddBody(rightArm);
-
-    Body* leftLeg = new Body(BoxShape(25, 100), 375, 300, 1.0);
-    _world->AddBody(leftLeg);
-
-    Body* rightLeg = new Body(BoxShape(25, 100), 425, 300, 1.0);
-    _world->AddBody(rightLeg);
-
-    _world->AddConstraint(new JointConstraint(head, torso, Vec2(400, 140)));
-    _world->AddConstraint(new JointConstraint(torso, leftArm, Vec2(370, 135)));
-    _world->AddConstraint(new JointConstraint(torso, rightArm, Vec2(430, 135)));
-    _world->AddConstraint(new JointConstraint(torso, leftLeg, Vec2(375, 250)));
-    _world->AddConstraint(new JointConstraint(torso, rightLeg, Vec2(425, 250)));
+    _world->AddBody(leftWall);
+    _world->AddBody(rightWall);
 
     _prevFrameTime = SDL_GetTicks();
 }
@@ -72,14 +59,12 @@ void Application::Input() {
                     int msX, msY;
                     SDL_GetMouseState(&msX, &msY);
 
-                    #if false
+                    #if true
                     static int shapeFlag = 0;
 
                     Body* body;
                     if(shapeFlag == 0) {
                         body = new Body(CircleShape(25), msX, msY, 1.0);
-                        Actor* actor = new Actor(body, "assets/basketball.png");
-                        _actors.push_back(actor);
                     } else {
                         int edgeCount = 3 + rand() % 7;
                         float deg = 360.f / edgeCount;
@@ -102,7 +87,7 @@ void Application::Input() {
                         _actors.push_back(actor);
                     }
 
-                    shapeFlag = (shapeFlag + 1) % 2;
+                    shapeFlag = (shapeFlag + 1) % 1;
                     _world->AddBody(body);
                     #endif
                     _isMouseDown = true;
@@ -137,15 +122,6 @@ void Application::Update() {
     }
     _prevFrameTime = SDL_GetTicks();
 
-    if(_isMouseDown) {
-        int msX, msY;
-        SDL_GetMouseState(&msX, &msY);
-
-        auto body = _world->GetBodies()[1];
-        Vec2 force = Vec2(msX, msY) - body->position;
-        body->AddForce(force * 25.f);            
-    }
-    
     _world->Update(deltaTime);
 }
 

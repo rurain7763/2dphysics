@@ -23,8 +23,6 @@ public:
 
     void Update(float deltaTime);
 
-    void CheckCollisions();
-
 private:
     std::vector<Body*> _bodies;
     std::vector<Vec2> _forces;

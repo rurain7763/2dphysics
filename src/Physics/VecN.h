@@ -11,7 +11,7 @@ struct VecN {
 
     float Dot(const VecN& v) const;
 
-    VecN& operator=(const VecN& other);
+    void operator=(const VecN& other);
 
     VecN operator+(const VecN& v) const;
     VecN operator-(const VecN& v) const;
